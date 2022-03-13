@@ -1,99 +1,21 @@
 ################################################################################################################################
-################################################################################################################################
-############################## Age and sex in the STRADL protein dataset #######################################################
-################################################################################################################################
+
+### PheWAS analyses - Age and Sex
+
 ################################################################################################################################
 
-# Aim - replicate previous age/sex/age*sex findings by Lehallier et al 
-# By doing this, we will identify the age/sex proteomes for our own sample in addition to the replication assessment
 
-setwd("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Aging_sex_profiling/")
+screen
+
+R
 
 library(tidyverse)
 library(readxl)
 
-################################################################################################################################
+## Load prepped joint PheWAS phenotypes file 
+prot <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/01_Phenotype_collation/prot_file_220221.csv", check.names = F)
 
-### STRADL DATA 
-
-################################################################################################################################
-
-# Protein data (raw, without processing)
-prot <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/GS+soma+QC+normalized.csv")
-
-# Annotation linker file for SeqIds
-link <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/annotation.csv", check.names = F)
-
-# Update naming so were working in SeqIds 
-names <- colnames(link)
-names(prot)[c(33:4267)] <- names
-
-# Load target file 
-target <- read.delim("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/STRADL_DNAm_target_REM_17April2020.txt")
-
-# > dim(target)
-# [1] 847   6
-
-# Check for missing protein data 
-proteins <- prot[c(13,33:4267)]
-
-table(is.na(proteins))
-
-# > table(is.na(proteins))
-#   FALSE
-# 4511340
-
-################################################################################################################################
-
-### TRANSFORM PROTEIN DATA AND JOIN FOR REGRESSIONS
-
-################################################################################################################################
-
-# For now, I will just log transform and scale as Rob did with protAA calc 
-
-## Log Transform 
-for(i in colnames(prot)[33:4267]){ 
-  prot[,i]<- log(prot[,i])
-}
-
-## Rank-Inverse Based Normaliation
-library(bestNormalize)
-for(i in colnames(prot)[33:4267]){ 
-  prot[,i]<- orderNorm(prot[,i])$x.t
-}
-
-################################################################################################################################
-
-### LINEAR REGRESSIONS
-
-################################################################################################################################
-
-# Load demographics for all people in STRADL 
-demo <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/demographicsV2.csv")
-names(demo)[1] <- "SampleId"
-
-# > dim(demo)
-# [1] 1069   11
-
-# Join phenotype info to protein dataset 
-prot <- left_join(prot, demo, by = "SampleId")
-
-# Add depression status into the dataset (read in file generated in depression covariate check, that is prepped with combined case/controls) 
-dep <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/Depression_case_controls_200521/prep_files/SCID_joint_to_GP_hospital_combined.csv")
-dep <- dep[c(1,6)]
-dep$combined <- as.character(dep$combined)
-names(dep)[1] <- "SampleId"
-prot <- left_join(prot, dep, by = "SampleId")
-table(is.na(prot$combined))
-
-prot$combined[is.na(prot$combined)] = 0
-
-## Set marker names to loop through in models as proteins (x)
-markers <- prot[c(33:4267)]
-marker_names <- colnames(markers)
-
-### LOAD IN COXME REQUIREMENTS 
-
+## Load lmekin requirements
 library(survival)
 library(kinship2)
 library(coxme)
@@ -119,8 +41,7 @@ ped <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Proxies_stradl/KORA_trai
 kin <- with(ped, pedigree(volid, father, mother, sex, famid=famid)) # Pedigree list with 26 total subjects in 5 families
 kin_model <- kinship(kin) 
 
-
-# Function to Extract Lmekin Results	
+# Function to Extract Lmekin Results  
 extract_coxme_table <- function (mod){
   #beta <- mod$coefficients #$fixed is not needed
   beta <- fixef(mod)
@@ -133,12 +54,18 @@ extract_coxme_table <- function (mod){
   return(table)
 }
 
-# Join in the GS id information into the protein dataset for models
-ids <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/ST id linkage.csv")
-names(ids)[1] <- "SampleId"
-ids <- ids[c(1,2)]
-library(tidyverse)
-prot <- left_join(prot, ids, by = "SampleId")
+## Set marker names to loop through in models as proteins (x)
+markers <- prot[c(33:4267)]
+marker_names <- colnames(markers)
+
+# Rename depression variable
+names(prot)[4297] <- "combined"
+
+
+
+#####################################################################################################################################
+
+### AGE AND SEX PHEWAS
 
 #####################################################################################################################################
 
@@ -151,7 +78,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 1:500){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -167,8 +94,8 @@ for(i in 1:500){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b1.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b1.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b1.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b1.csv", row.names = F)
 
 
 length <- 4235
@@ -178,7 +105,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 501:1000){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -194,8 +121,8 @@ for(i in 501:1000){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b2.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b2.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b2.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b2.csv", row.names = F)
 
 
 length <- 4235
@@ -205,7 +132,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 1001:1500){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -221,8 +148,8 @@ for(i in 1001:1500){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b3.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b3.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b3.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b3.csv", row.names = F)
 
 
 length <- 4235
@@ -232,7 +159,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 1501:2000){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -249,8 +176,8 @@ for(i in 1501:2000){
 
 # batch 4
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b4.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b4.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b4.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b4.csv", row.names = F)
 
 
 
@@ -261,7 +188,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 2001:2500){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -277,8 +204,8 @@ for(i in 2001:2500){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b5.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b5.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b5.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b5.csv", row.names = F)
 
 
 length <- 4235
@@ -288,7 +215,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 2501:3000){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -304,8 +231,8 @@ for(i in 2501:3000){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b6.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b6.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b6.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b6.csv", row.names = F)
 
 
 
@@ -316,7 +243,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 3001:3500){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -332,8 +259,8 @@ for(i in 3001:3500){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b7.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b7.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b7.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b7.csv", row.names = F)
 
 
 
@@ -344,7 +271,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 3501:4000){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -360,8 +287,8 @@ for(i in 3501:4000){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b8.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b8.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b8.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b8.csv", row.names = F)
 
 
 length <- 4235
@@ -371,7 +298,7 @@ results2 <- data.frame(SeqId = 1:length, Sex_beta = 1:length, Sex_SE = 1:length,
 for(i in 4001:4235){
   prot_name <- as.character(colnames(markers[i]))
   
-  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + (1|prot$id), data = prot, varlist = kin_model*2)
+  mod <- lmekin(scale(prot[,prot_name]) ~ scale(prot$st_age) + as.factor(prot$sex) + as.factor(prot$combined) + as.factor(study_site) + as.factor(lag_group) + (1|prot$GS_id), data = prot, varlist = kin_model*2)
 
   print(i)
   print(prot_name)
@@ -387,25 +314,35 @@ for(i in 4001:4235){
 }
 
 # save a copy of results tables 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b9.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b9.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b9.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b9.csv", row.names = F)
 
 
 #########################################################################################################################
+
+### PROCESSING AGE SEX RESULTS
+
+#########################################################################################################################
+
+screen
+
+R
+
+library(tidyverse)
 
 # Sort the results for each model and combine the batches
 
 # Age 
 
-e1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b1.csv")
-e2 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b2.csv")
-e3 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b3.csv")
-e4 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b4.csv")
-e5 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b5.csv")
-e6 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b6.csv")
-e7 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b7.csv")
-e8 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b8.csv")
-e9 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/age_b9.csv")
+e1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b1.csv")
+e2 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b2.csv")
+e3 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b3.csv")
+e4 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b4.csv")
+e5 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b5.csv")
+e6 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b6.csv")
+e7 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b7.csv")
+e8 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b8.csv")
+e9 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/age_b9.csv")
 
 e1 <- e1[1:500,]
 e2 <- e2[501:1000,]
@@ -430,17 +367,15 @@ results <- e
 
 # Sex 
 
-e1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b1.csv")
-e2 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b2.csv")
-e3 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b3.csv")
-e4 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b4.csv")
-e5 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b5.csv")
-e6 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b6.csv")
-e7 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b7.csv")
-e8 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b8.csv")
-e9 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/individual_results/sex_b9.csv")
-
-
+e1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b1.csv")
+e2 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b2.csv")
+e3 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b3.csv")
+e4 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b4.csv")
+e5 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b5.csv")
+e6 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b6.csv")
+e7 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b7.csv")
+e8 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b8.csv")
+e9 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/batches/sex_b9.csv")
 
 e1 <- e1[1:500,]
 e2 <- e2[501:1000,]
@@ -468,57 +403,91 @@ results <- results[order(results$Age_P),]
 results2 <- results2[order(results2$Sex_P),]
 
 # Merge in protein info 
-anno <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/SOMAscan_Assay_v4_Annotations_version3.3.2_DG.xlsx")
-anno <- as.data.frame(anno)
-anno <- anno[c(1,18,13,4,2)]
+anno <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Annotations_protein_file/annotation_formatted_for_paper.csv")
 
 results <- left_join(results, anno, by = "SeqId")
 
 results2 <- left_join(results2, anno, by = "SeqId")
 
+# record of previous adjustment:
+
+# # Manually calculate p vals 
+# results$Age_Pcalc <- pchisq((results$Age_beta/results$Age_SE)^2, 1, lower.tail=F)
+# results2$Sex_Pcalc <- pchisq((results2$Sex_beta/results2$Sex_SE)^2, 1, lower.tail=F)
+
+# # # Plot p vals extracted vs calculated 
+# # plot(results$Age_P, results$Age_Pcalc) # these look good
+
+# # Do p value adjustment 
+# results$Age_P_adjust <- p.adjust(results$Age_Pcalc, method = "BH")
+# results2$Sex_P_adjust <- p.adjust(results2$Sex_Pcalc, method = "BH")
+
+# # Add identifier for those that pass/fail significance in each 
+# results$Age_Status <- ifelse(results$Age_P_adjust < 0.05, "pass", "fail")
+# results2$Sex_Status <- ifelse(results2$Sex_P_adjust < 0.05, "pass", "fail")
+
+# # Count those that pass
+# sig <- which(results$Age_P_adjust < 0.05)
+# sig <- results[sig,]
+# dim(sig) # 800 - to 919 after study site and lag group adjusted for 
+
+# # Count those that pass
+# sig2 <- which(results2$Sex_P_adjust < 0.05)
+# sig2 <- results2[sig2,]
+# dim(sig2) # 805 - to 839 after study site and lag group adjusted for 
+
+
 # Manually calculate p vals 
 results$Age_Pcalc <- pchisq((results$Age_beta/results$Age_SE)^2, 1, lower.tail=F)
 results2$Sex_Pcalc <- pchisq((results2$Sex_beta/results2$Sex_SE)^2, 1, lower.tail=F)
 
-# Plot p vals extracted vs calculated 
-plot(results$Age_P, results$Age_Pcalc) # these look good
+# # Plot p vals extracted vs calculated 
+# plot(results$Age_P, results$Age_Pcalc) # these look good
 
-# Do p value adjustment 
-results$Age_P_adjust <- p.adjust(results$Age_Pcalc, method = "BH")
-results2$Sex_P_adjust <- p.adjust(results2$Sex_Pcalc, method = "BH")
+# # Do p value adjustment 
+# results$Age_P_adjust <- p.adjust(results$Age_Pcalc, method = "BH")
+# results2$Sex_P_adjust <- p.adjust(results2$Sex_Pcalc, method = "BH")
+
+# Threshold significance by P < 3.5x10-4
 
 # Add identifier for those that pass/fail significance in each 
-results$Age_Status <- ifelse(results$Age_P_adjust < 0.05, "pass", "fail")
-results2$Sex_Status <- ifelse(results2$Sex_P_adjust < 0.05, "pass", "fail")
+results$Age_Status <- ifelse(results$Age_Pcalc < 3.5e-4, "pass", "fail")
+results2$Sex_Status <- ifelse(results2$Sex_Pcalc < 3.5e-4, "pass", "fail")
 
 # Count those that pass
-sig <- which(results$Age_P_adjust < 0.05)
+sig <- which(results$Age_Pcalc < 0.05)
 sig <- results[sig,]
-dim(sig) # 546 protein traits identified - with lmekin it is 583 - now 798 - now 801 
+dim(sig) # 1213
 
 # Count those that pass
-sig2 <- which(results2$Sex_P_adjust < 0.05)
+sig2 <- which(results2$Sex_Pcalc < 0.05)
 sig2 <- results2[sig2,]
-dim(sig2) # 607 protein traits identified - with lmekin it is 623 - now 814 - now 799 
+dim(sig2) # 1210
 
 # Order by new p vals calculated manually 
 results <- results[order(results$Age_Pcalc),]
 results2 <- results2[order(results2$Sex_Pcalc),]
 
 # Save out results tables for further processing 
-write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/age_results_file.csv", row.names = F)
-write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/pheWAS_240521/age_sex_dep_cov/sex_results_file.csv", row.names = F)
+write.csv(results, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/age_results_file.csv", row.names = F)
+write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/sex_results_file.csv", row.names = F)
 
-# Move these files over to datastore for the Fig 1 plotting and replication assessment 
+
 
 ###########################################################################
 
-### REPLICATION FOR LEHALIER
+### REPLICATION ASSESSMENT 
 
-# BLSA/GESTALT study - tanaka study: https://onlinelibrary.wiley.com/doi/full/10.1111/acel.12799
-# INTERVAL/LonGenity study - lehalier study: https://www.nature.com/articles/s41591-019-0673-2#Sec8
-# InCHIANTI study - https://elifesciences.org/articles/61073
-# As lehalier is the largest to date, we will just use that one for the replication assessment 
+# Chosen studies to include 
+# Sun et al - included (N 3,301)
+# Ferkingstad et al - included (N 35,559)
+# INTERVAL/LonGenity study - lehalier study: https://www.nature.com/articles/s41591-019-0673-2#Sec8 - chosen (N 4,263)
+
+# Remaining studies either had N < 500 or looked at age/sex assocs with DNAm mediation)
+# BLSA/GESTALT study - tanaka study: https://onlinelibrary.wiley.com/doi/full/10.1111/acel.12799 - (N 240)
+# InCHIANTI study - https://elifesciences.org/articles/61073 (Age associated proteins mediation by DNA methylation - N 997)
+# Ngo - https://www.ahajournals.org/doi/full/10.1161/CIRCULATIONAHA.116.021803 (N < 100)
+# Menni - https://academic.oup.com/biomedgerontology/article/70/7/809/707747?login=true#supplementary-data (discovery N 206)
 
 ### First - look at how many age assocs were also sex significant 
 

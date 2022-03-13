@@ -4,36 +4,49 @@
 # Read in the table that has our CpG-protein associations, with the chromosome and positional information extracted for all relevant variables
 
 library(circlize)
-cpgs = read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/cis_trans_090621/no_eGFR_cistrans_table_unformatted_naming.csv") # 2895
+library(tidyverse)
+cpgs = read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/FULL_cistrans_table_formatted_naming_ANNOTATED.csv") # 2928
+names(cpgs)[10] <- "gene"
 
+# Take a look at the associations for the remaining proteins (580)
+c <- table(cpgs$SeqId) %>% as.data.frame()
+c <- c[order(-c$Freq),]
+
+# Join in gene info for SeqIds 
+gene <- cpgs[c(9,10)]
+names(c)[1] <- "SeqId"
+d <- left_join(c, gene, by = "SeqId")
+
+library(dplyr)
+e <- distinct(d)
+
+# save out summary of pleiotropic associations
+write.csv(e, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans_plot/full_ewas_summary_proteins_top_second_threshold.csv")
+
+## Subset full results to remove the 2 highly pleiotropic proteins 
 cpgs <- cpgs[-which(cpgs$gene == "PRG3"),] 
-dim(cpgs) 
+dim(cpgs) # 1812
 
 cpgs <- cpgs[-which(cpgs$gene == "PAPPA"),] 
-dim(cpgs)
-# 597 - PAPPA has 1141 assocs 
+dim(cpgs) # 825
 
-# 2298 + 597 = 2895
 
 # First see how many cis/trans unique sites we have 
-
+names(cpgs)[16] <- "Effect"
 cis = cpgs[cpgs$Effect %in% "CIS", ]
-# plot(cpgs$Cpg_pos, cpgs$gene_start)
-length(unique(cis$gene_start))
-dim(cis) # 342
+dim(cis) # 434
 
 trans = cpgs[cpgs$Effect %in% "TRANS", ]
-# plot(cpgs$Cpg_pos, cpgs$gene_start)
-length(cpgs$gene_start) # 255
-dim(trans)
+dim(trans) # 391
+
 
 # Prep naming
-names(cpgs)[5] <- "Gene_of_Hit"
+names(cpgs)[3] <- "Gene_of_Hit"
 cpgs[which(cpgs$Gene_of_Hit %in% ""),"Gene_of_Hit"] <- "Unannotated"
 names(cpgs)[2] <- "Chromosome_of_Hit"
 names(cpgs)[4] <- "Position_of_Hit"
-names(cpgs)[17] <- "Chromosome_of_Somamer"
-names(cpgs)[15] <- "Position_of_Somamer"
+names(cpgs)[15] <- "Chromosome_of_Somamer"
+names(cpgs)[18] <- "Position_of_Somamer"
 
 # Read in chromosome length (taken from Rob's original cis/trans plot)
 gen <- cpgs
@@ -61,7 +74,7 @@ gen$Relative_Gene_Position <- gen$Relative_Gene_Position + gen$Chromosome_of_Som
 # Plot relative positions of hits 
 
 library(ggplot2)
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/cis_trans_090621/no_eGFR_cistrans_plot_V6.pdf", width = 8.9, height = 7.2)
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans_plot/cistrans_plot1_second_threshold.pdf", width = 8.9, height = 7.2)
 p = ggplot(gen, aes(Relative_Hit_Position, Relative_Gene_Position)) + scale_color_manual(values = c("CIS" = "purple2", "TRANS" = "seagreen3"))
 q = p + geom_jitter(aes(colour = as.factor(Effect)), size = 0.7) + xlab("CpG Position") + ylab("Protein Position")
 q = q + scale_x_continuous(limits = c(1,24), breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), labels = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,"X", "")) + scale_y_continuous(limits = c(1,24), breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), labels = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,"X", "")) + theme_bw()

@@ -2,6 +2,12 @@
 
 ### PLOT FOR COMMON PROTEINS PCA 
 
+cd /Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/common_proteins/
+
+screen
+
+R
+
 library(tidyverse)
 library(ggplot2)
 library(readxl)
@@ -11,10 +17,11 @@ library(cowplot)
 library(tidyverse)
 
 # Read in the protein file 
-prot <- read.csv("Y:/Danni/Cluster_Files/prot_file_110821_WMHV.csv", check.names = F)
+prot <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/01_Phenotype_collation/prot_file_220221.csv", check.names = F)
 
 # Read in "common" file from the updated beta plots script for the plot with 25 proteins 
 # List the top 25 proteins (26 somamers)
+common <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/common_proteins/common_proteins_V2.csv")
 list <- unique(common$SeqId)
 
 # subset prot file to include just these somamers 
@@ -23,10 +30,10 @@ prot2 <- prot[,which(colnames(prot) %in% list)]
 # Assign variable to joint 
 joint <- prot2
 
-# 4876-32 - F9 
-# 5307-12 - F9 
+# # 4876-32 - F9 
+# # 5307-12 - F9 
 
-joint <- joint[,-which(colnames(joint) %in% "5307-12")]
+# joint <- joint[,-which(colnames(joint) %in% "5307-12")]
 
 # Scale data and get PC scores
 scores_pca <- principal(scale(joint), rotate="none", nfactors=ncol(joint))$scores
@@ -51,9 +58,7 @@ cum$mes <- as.numeric(cum$value)
 cor = cor(joint)
 
 ## Read in seq-id conversion file 
-anno <- read_excel("Y:/Protein_DNAm_Proxies/Annotations_for_reference.xlsx")
-anno <- as.data.frame(anno)
-anno <- anno[,c(1,4,18)]
+anno <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Annotations_protein_file/annotation_formatted_for_paper.csv")
 
 ## subset seq-ids
 anno1 = anno[which(anno$SeqId %in% colnames(cor)),] 
@@ -137,7 +142,7 @@ p1 = plot_grid(c,a,b, nrow = 1, labels = c("a", "b", "c"), rel_widths = c(0.85,0
 # print(i)
 # } 
 
-pdf("Y:/Danni/stradl_markers/Plots/SUPPL_PCA/FIGURE_lower_25_proteins.pdf", height =6 , width = 17)
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/common_proteins/FIGURE_lower_22_proteins.pdf", height =6 , width = 17)
 p1
 dev.off()
 
