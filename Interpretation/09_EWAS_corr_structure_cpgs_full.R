@@ -317,6 +317,31 @@ ggcorrplot(corr, hc.order = TRUE, type = "lower",
      outline.col = "white") + theme(text = element_text(size = 0.2)) 
 dev.off()
 
+# Create plots for cum var and eigen values 
+var <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/cpgs_eig_values_prcomp.csv")
+var$num <- 1:597
+names(var)[2] <- "mes"
+# var[1,1] <- 300
+var$col <- ifelse(var$mes >= 1, "darkgrey", "orange")
+dim(var[which(var$mes >= 1),]) # 150 eigenvalues greater than or equal to 1 
+# Eigen values 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/CPGS_597_eigen_vals.pdf")
+ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+dev.off()
+
+# first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
+
+names(var)[4] <- "cum"
+# Cumulative variance 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/CPGS_597_cum_var.pdf")
+ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+dev.off()
+
 ########################################################
 
 ## PAPPA
@@ -351,6 +376,31 @@ eig.val <- get_eigenvalue(res.pca)
 eig.val
 write.csv(eig.val, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/PAPPA_eig_values_prcomp.csv")
 
+
+# Create plots for cum var and eigen values 
+var <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/PAPPA_eig_values_prcomp.csv")
+var$num <- 1:774
+names(var)[2] <- "mes"
+# var[1,1] <- 300
+var$col <- ifelse(var$mes >= 1, "darkgrey", "orange")
+dim(var[which(var$mes >= 1),]) # 150 eigenvalues greater than or equal to 1 
+# Eigen values 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/PAPPA_eigen_vals.pdf")
+ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+dev.off()
+
+# first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
+
+names(var)[4] <- "cum"
+# Cumulative variance 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/PAPPA_cum_var.pdf")
+ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+dev.off()
 
 ########################################################
 
@@ -387,6 +437,32 @@ eig.val
 write.csv(eig.val, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/PRG3_eig_values_prcomp.csv")
 
 
+# Create plots for cum var and eigen values 
+var <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/PRG3_eig_values_prcomp.csv")
+var$num <- 1:774
+names(var)[2] <- "mes"
+# var[1,1] <- 300
+var$col <- ifelse(var$mes >= 1, "darkgrey", "orange")
+dim(var[which(var$mes >= 1),]) # 150 eigenvalues greater than or equal to 1 
+# Eigen values 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/PRG3_eigen_vals.pdf")
+ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+dev.off()
+
+# first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
+
+names(var)[4] <- "cum"
+# Cumulative variance 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/PRG3_cum_var.pdf")
+ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+dev.off()
+
+
 ########################################################
 
 ## ALL
@@ -420,6 +496,33 @@ dev.off()
 eig.val <- get_eigenvalue(res.pca)
 eig.val
 write.csv(eig.val, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ALL_eig_values_prcomp.csv")
+
+
+# Create plots for cum var and eigen values 
+var <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ALL_eig_values_prcomp.csv")
+var$num <- 1:774
+names(var)[2] <- "mes"
+# var[1,1] <- 300
+var$col <- ifelse(var$mes >= 1, "darkgrey", "orange")
+dim(var[which(var$mes >= 1),]) # 150 eigenvalues greater than or equal to 1 
+# Eigen values 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/ALL_eigen_vals.pdf")
+ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+dev.off()
+
+# first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
+
+names(var)[4] <- "cum"
+# Cumulative variance 
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/ALL_cum_var.pdf")
+ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+dev.off()
+
 
 ########################################################
 

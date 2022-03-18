@@ -8,6 +8,49 @@ screen
 
 R
 
+### Assess which CpGs were unique to EPIC array 
+
+# Read in cpgs results file 
+cpgs <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/slice_neuro_final_35_pQTMs_pQTLs_added.csv")
+
+# Read in EPIC annotation file
+anno <- readRDS("/Cluster_Filespace/Marioni_Group/Daniel/EPIC_AnnotationObject_df.rds")
+
+# Subset annotation file to probes common to 450k and EPIC array
+common_anno <- anno[which(anno$Methyl450_Loci == "TRUE"),]
+
+# index which CpGs were in the 450K
+length(which(cpgs$CpG %in% common_anno$Name)) # 19 are in 450K
+
+# Create version that is additional to the 450k array 
+anno_extra <- anno[-which(anno$Methyl450_Loci == "TRUE"),]
+
+# > dim(anno)
+# [1] 866836     46
+# > dim(common_anno)
+# [1] 453093     46
+# > dim(anno_extra)
+# [1] 413743     46
+
+# Index whether any CpGs were EPIC only 
+length(which(cpgs$CpG %in% anno_extra$Name)) # 16 are in EPIC 
+
+# Save names of each set 
+cpgs_450 <- cpgs[which(cpgs$CpG %in% common_anno$Name),]
+cpgs_450$array <- "450K"
+
+cpgs_EPIC <- cpgs[which(cpgs$CpG %in% anno_extra$Name),]
+cpgs_EPIC$array <- "EPIC"
+
+
+cpgs_450 <- cpgs_450[c(1,19)]
+cpgs_EPIC <- cpgs_EPIC[c(1,19)]
+
+# find unique cpgs in each 
+unique(cpgs_450$CpG) # 16
+unique(cpgs_EPIC$CpG) # 15
+
+
 ## Load requisite packages 
 library(data.table)
 

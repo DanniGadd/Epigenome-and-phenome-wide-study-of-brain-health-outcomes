@@ -713,12 +713,116 @@ write.csv(join, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisi
 
 # Isolate a list of CpG genes and protein genes to feed into enrichment analyses 
 table <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/slice_neuro_final_35_pQTMs_pQTLs_added.csv")
-list1 <- unique(table$Gene.of.CpG)
-list2 <- unique(table$Gene.of.Protein)
+list11 <- unique(table$Gene.of.CpG)
+list22 <- unique(table$Gene.of.Protein)
 
 
 # Now go to mQTL/eQTL script to assess lookup 
 
+
+###############################################################################
+
+### Additional step: positive and negative direction of effect table 
+
+# Get lists of pos/neg proteins in associations - list1 has the 405 total associations combined to use 
+
+phenos <- unique(list1$phenotype)
+
+#  [1] "APOE"
+#  [2] "Brain Age Acceleration"
+#  [3] "Global Grey Matter Volume"
+#  [4] "General Fractional Anisotropy"
+#  [5] "General Mean Diffusivity"
+#  [6] "Fazekas White Matter Hyperintensity Score"
+#  [7] "WMH_Volume_Total"
+#  [8] "Whole Brain Volume"
+#  [9] "General Cognitive Ability"
+# [10] "General Fluid Cognitive Ability"
+# [11] "Processing Speed"
+# [12] "Logical Memory"
+# [13] "Non-Verbal Reasoning"
+# [14] "Verbal Reasoning"
+# [15] "Vocabulary"
+
+table <- data.frame(Phenotype = 1:15, Positive = 1:15, Negative = 1:15)
+
+for (i in 1:length(phenos)){
+  subset_pheno <- as.character(phenos[i])
+  subset <- list1[which(list1$phenotype %in% subset_pheno),]
+  neg <- subset[which(subset$beta < 0),]
+  pos <- subset[which(subset$beta > 0),]
+  print(dim(subset)[1] == (dim(neg)[1] + dim(pos)[1])) # check that the neg and pos associations add to full amount 
+  neg_list <- neg[,4]
+  pos_list <- pos[,4]
+  neg_list <- str_c(neg_list, collapse = ", ")
+  pos_list <- str_c(pos_list, collapse = ", ")
+  table[i,1] <- subset_pheno
+  table[i,2] <- pos_list
+  table[i,3] <- neg_list
+}
+
+write.csv(table, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/pos_neg_summary_PheWAS.csv", row.names = F)
+
+
+# Write out a record of the full 405 assocs for suppl tables
+write.csv(list1, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/list1_405_assocs_pheWAS.csv", row.names = F)
+
+# Make list of 'protective' proteins 
+
+GLIPR2
+NCAN
+SLITRK1
+IGLON5
+NCAN
+PTPRD
+SEZ6L
+NPTXR
+
+TBCA
+NEFL
+ING4
+S100A13
+BIRC2
+PAF
+TMCC3
+CRP
+FAM20A
+
+COL11A2
+EGFR
+BAGE3
+EHMT2
+APOB
+CHAD
+GLIPR2
+CYB5R3
+OMD
+NPTN
+EHMT2
+COL1A1
+LEG1
+EGFR
+ART3
+LRRC15
+CCDC126
+PPY
+SLITRK3
+IGLON5
+PNLIP
+CST5
+AMY2A
+WFIKKN2
+EHMT2
+NPTN
+LRRC15
+COL1A1
+COL2A1
+AMY2B
+FUT10
+
+
+
+# Test list of negative proteins 
 
 
 

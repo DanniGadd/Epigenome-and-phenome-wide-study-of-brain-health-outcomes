@@ -66,7 +66,8 @@ plot(cumsum(prop_varex), xlab = "Principal Component",
 eig.val <- get_eigenvalue(res.pca)
 eig.val
 write.csv(eig.val, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/00_PCA_proteins/eig_values_prcomp.csv")
-  
+
+
 # Results for Variables
 res.var <- get_pca_var(res.pca)
 res.var$coord          # Coordinates
@@ -83,5 +84,52 @@ res.ind$cos2           # Quality of representation
 
 # Spectral decomposition which examines the covariances / correlations between variables
 # Singular value decomposition which examines the covariances / correlations between individuals
+
+### PLOT EIGENVALUES AND CUMULATIVE VARIANCE WITH CORR PLOT 
+
+var <- eig.val
+var$num <- 1:1065
+names(var)[1] <- "mes"
+var[1,1] <- 300
+var$col <- ifelse(var$mes >= 1, "darkgrey", "orange")
+dim(var[which(var$mes >= 1),]) # 483 eigenvalues greater than or equal to 1 
+# Eigen values 
+a <- ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure/4235_proteins_eigen_vals.pdf")
+ggplot(var, aes(num, mes, col = col)) +
+geom_point(size = 1) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
+scale_color_manual(values=c("#E69F00", "#999999")) 
+dev.off()
+
+# first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
+
+names(var)[3] <- "cum"
+# Cumulative variance 
+b <- ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure/4235_proteins_cum_var.pdf")
+ggplot(var, aes(num, cum)) +
+geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
+xlab("Principal component") + ylab("Cumulative proportion") 
+dev.off()
+
+# ggcorrplot
+library(ggcorrplot)
+corr <- cor(prot)
+c <- ggcorrplot(corr, hc.order = TRUE, type = "lower",
+     outline.col = "white") + theme(text = element_text(size = 0.2)) 
+
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure/4235_proteins_corr_plot.pdf", width = 50, height = 50)
+ggcorrplot(corr, hc.order = TRUE, type = "lower",
+     outline.col = "white") + theme(text = element_text(size = 0.2)) 
+dev.off()
+
 
 ###################################################

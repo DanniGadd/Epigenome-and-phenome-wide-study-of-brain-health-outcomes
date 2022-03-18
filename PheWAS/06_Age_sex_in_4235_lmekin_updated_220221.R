@@ -491,9 +491,12 @@ write.csv(results2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Re
 
 ### First - look at how many age assocs were also sex significant 
 
-setwd("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/")
-age <- read.csv("pcalc_main_RI_age_results_file.csv")
-sex <- read.csv("pcalc_main_RI_sex_results_file.csv")
+screen
+
+R
+
+age <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/age_results_file.csv")
+sex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/sex_results_file.csv")
 
 library(tidyverse)
 library(readxl)
@@ -502,33 +505,123 @@ library(readxl)
 agesex <- left_join(age, sex, by = "SeqId")
 
 # Work out how many age assocs were also sex assocs 
-age_sig <- filter(agesex, Age_P_adjust < 0.05) # 583 age associations - now 798
-agesexsig <- filter(age_sig, Sex_P_adjust < 0.05) # now 394
+age_sig <- filter(agesex, Age_Pcalc < 0.0003496503) # 587
+sex_sig <- filter(agesex, Sex_Pcalc < 0.0003496503) # 
+agesexsig <- filter(age_sig, Sex_Pcalc < 0.0003496503) # now 222 
 
-# of the 798, 394 were also associated with sex
+### ASSESS REPLICATION OF PREVIOUS RESULTS 
 
-### Now - COMPARE TO LEHALLIER RESULTS 
-leh <- read_excel("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/replication_assessment/INTERVAL_lehalier_results.xlsx")
-leh <- as.data.frame(leh)
+## Ferkingstad et al 
 
-dim(leh) # 2925 - matches paper!
+# Accounting for multiple testing, the levels of 63% of the 4,907 proteins correlated positively with 
+# age and 18% correlated negatively with age (Supplementary Table 1). Moreover, levels of 33% of the proteins
+# were higher in men and 23% were higher in women.
 
-# # Sort out the naming situation for joining to our results - no longer needed thanks to linker used above 
+# 5284 total in this study 
+# 63 + 18 = 81% significant age
+# 33 + 23 = 56% significant sex 
+
+# 5284 / 100, then x 81 = 4280
+# 5284 / 100, then x 56 = 2959
+
+thr <- 0.05 / 4907
+
+dat <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/ferkingstad_age_sex.xlsx")
+dat <- as.data.frame(dat)
+
+dat$pvalage <- sub(',','.',dat$pvalage)
+dat$pvalmale <- sub(',','.',dat$pvalmale)
+
+dat$pvalage <- as.numeric(dat$pvalage)
+dat$pvalmale <- as.numeric(dat$pvalmale)
+
+datage <- dat[order(dat$pvalage),]
+datsex <- dat[order(dat$pvalmale),]
+
+# check thresholding is correct for  adjustment 
+sub<- datage[which(datage$pvalage < thr),]
+neg <- sub[which(sub$betaage < 0),] 
+dim(neg)
+pos <- sub[which(sub$betaage > 0),] 
+dim(pos)
+perc <- (dim(neg)[1] / 5284 ) * 100
+perc
+perc2 <- (dim(pos)[1] / 5284 ) * 100
+perc2
+
+sub <- datsex[which(datsex$pvalmale < thr),]
+sub <- datsex[1:2959,]
+neg <- sub[which(sub$betamale < 0),] 
+dim(neg)
+pos <- sub[which(sub$betamale > 0),] 
+dim(pos)
+perc <- (dim(neg)[1] / 5284 ) * 100
+perc
+perc2 <- (dim(pos)[1] / 5284 ) * 100
+perc2
+
+# Create subset of significant results to compare to 
+datage<- datage[which(datage$pvalage < thr),] # 4306
+datsex <- datsex[which(datsex$pvalmale < thr),] # 2921
+
+# Create matchable IDs
+datage$SeqId <- sub('_','-',datage$SeqId)
+datsex$SeqId <- sub('_','-',datsex$SeqId)
+
+write.csv(datage, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/ferkingstad_age.csv", row.names = F)
+write.csv(datsex, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/ferkingstad_sex.csv", row.names = F)
+
+
+## Sun et al 
+sun <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/sun_age_sex_BMI.xlsx")
+sun <- as.data.frame(sun)
+names(sun)[1] <- "SeqId"
+
+# Create matchable IDs 
+# anno <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Annotations_protein_file/annotation_formatted_for_paper.csv")
 library(stringr)
-x = strsplit(leh$ID, ".", fixed = T)
+x = strsplit(sun$SeqId, ".", fixed = T)
 head(x)
 ids = lapply(x, function(x){paste0(x[2], "-", x[3])})
 ids = unlist(ids)
-leh$SeqId <- ids
+sun$SeqId <- ids
 
-# Now merge in the seqIds and make sure the conversion has been completed for all of them
-anno <- read_excel("Y:/Protein_DNAm_Proxies/Manuscript_revision/Annotations_for_reference.xlsx")
-anno <- as.data.frame(anno)
-anno <- anno[c(1,18,13,4,2)]
-anno$check_col <- anno$SeqId
-anno <- anno[c(1,6,2:5)]
-leh <- left_join(leh, anno, by = "SeqId")
-write.csv(leh, "lehalier_renamed_joint_to_anno_using_extraction_method_chopped.csv", row.names = F) # check the conversions and manually edit any issues 
+names(sun)[7:9] <-  c("agebeta", "ageSE", "ageP")
+names(sun)[10:12] <- c("femalebeta", "femaleSE", "femaleP")
+
+# convert p vals back from -log10(P)
+sun$ageP <- 10^(-sun$ageP)
+sun$femaleP <- 10^(-sun$femaleP)
+
+sunage <- sun[order(sun$ageP),]
+sunsex <- sun[order(sun$femaleP),]
+
+write.csv(sunage, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/sun_age.csv", row.names = F)
+write.csv(sunsex, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/sun_sex.csv", row.names = F)
+
+
+## Lehallier et al 
+# leh <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/INTERVAL_lehalier_results.xlsx")
+# leh <- as.data.frame(leh)
+
+# dim(leh) # 2925 - matches paper!
+
+# # # Sort out the naming situation for joining to our results - no longer needed thanks to linker used above 
+# library(stringr)
+# x = strsplit(leh$ID, ".", fixed = T)
+# head(x)
+# ids = lapply(x, function(x){paste0(x[2], "-", x[3])})
+# ids = unlist(ids)
+# leh$SeqId <- ids
+
+# # Now merge in the seqIds and make sure the conversion has been completed for all of them
+# anno <- read_excel("Y:/Protein_DNAm_Proxies/Manuscript_revision/Annotations_for_reference.xlsx")
+# anno <- as.data.frame(anno)
+# anno <- anno[c(1,18,13,4,2)]
+# anno$check_col <- anno$SeqId
+# anno <- anno[c(1,6,2:5)]
+# leh <- left_join(leh, anno, by = "SeqId")
+# write.csv(leh, "lehalier_renamed_joint_to_anno_using_extraction_method_chopped.csv", row.names = F) # check the conversions and manually edit any issues 
 
 # # Read in the linker file to sort out the SeqIds 
 # link <- read_excel("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/replication_assessment/lehalier_linker_file.xlsx")
@@ -541,7 +634,7 @@ write.csv(leh, "lehalier_renamed_joint_to_anno_using_extraction_method_chopped.c
 # leh <- left_join(leh, link, by = "ID")
 
 # Read in the correct SeqIds file as edited to remove any issues with naming 
-leh <- read_excel("lehalier_renamed_joint_to_anno_using_extraction_method_chopped_edited_excel_file.xlsx")
+leh <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/lehalier_renamed_joint_to_anno_using_extraction_method_chopped_edited_excel_file.xlsx")
 leh <- as.data.frame(leh)
 length(unique(leh$SeqId)) # 2925 - all good
 
@@ -561,328 +654,227 @@ issue[2,3] <- 2.89028402817129E-320
 leh <- rbind(t, issue) # 2925
 leh <- leh[c(14,2:7)]
 names(leh) <- c("SeqId", "leh_Age_P", "leh_Age_P_adj", "leh_Age_beta", "leh_Sex_P", "leh_Sex_P_adj", "leh_Sex_beta")
-write.csv(leh, "lehalier_renamed_and_complete.csv", row.names = F)
-
-joint <- agesex # Assign our results to a variable called 'joint' for age and sex 
-
-# check to see how many proteins match across all tables 
-length(which(leh$SeqId %in% joint$SeqId)) # 2438
-
-### How many were the comparisons unavailable for?
-length(which(!leh$SeqId %in% joint$SeqId)) # 487 from our file arent in leh file 
-
-length(which(!joint$SeqId %in% leh$SeqId)) # 1800 from leh file arent in our file  
-
-# Subset to common proteins across our results and their results files 
-joint <- joint[which(joint$SeqId %in% leh$SeqId),]  # 2435  in leh file that are available as direct comparisons to ours 
-
-j_sig <- joint %>% filter(Age_P_adjust < 0.05) # 476 possible matches for replication in ours 
-dim(j_sig)
-
-j_sig2 <- joint %>% filter(Sex_P_adjust < 0.05) # 450 possible matches for replication in ours 
-dim(j_sig2)
-
-# Do p values corrected version for replication
-names(leh)[3] <- "adj_age"
-names(leh)[6] <- "adj_sex"
-leh$adj_sex <- as.numeric(leh$adj_sex)
-
-# get lehanlier age sig assocs
-age <- leh[which(leh$adj_age <= 0.05),] # 1,379 - matches their paper exactly  
-# get lehallier sex sig assocs 
-sex <- leh[which(leh$adj_sex <= 0.05),] # 1651 - matches their paper exactly 
-# get the age and sex sig assocs 
-agesex <- age %>% filter(adj_sex <= 0.05) # 895 - matches their paper exactly 
-
-# See if we replicate the associations 
-a_filter <- joint %>% filter(Age_P_adjust < 0.05) 
-
-length(which(age$SeqId %in% a_filter$SeqId)) # 373 / 476 that match for age between sig results of both studies 
-
-s_filter <- joint %>% filter(Sex_P_adjust < 0.05)
-
-length(which(sex$SeqId %in% s_filter$SeqId)) # 381 / 450 that match for sex for sig results of both studies 
-
-# Collate the data so we can check replications based on direction of effect for beta coeficient 
-lehag <- leh[c(1,2,3,4)] # version with age results across the leh results 
-lehage <- lehag[which(lehag$adj_age <= 0.05),] #1379
-lehse <- leh[c(1,5,6,7)] # version with sex results across the leh results 
-lehsex <- lehse[which(lehse$adj_sex <= 0.05),] #1651
-
-# Now join our results to those which are present in lehalier study
-j_sig <- j_sig[c(1:5,9,10)]
-j_sig$SeqId <- as.character(j_sig$SeqId)
-usage <- merge(j_sig, lehage, by = "SeqId", all = T) 
-usage <- usage %>% filter(Age_P_adjust <= 0.05)
-length(unique(usage$SeqId))
-n_occur <- data.frame(table(usage$SeqId)) # its row , which is 2953-31 thats duplicated due to having 2 genes - but its same info so we can remove i think 
-usage <- usage[-169,]
-write.csv(usage, "age_replication_table.csv", row.names = F)
-
-# Make sure all were available 
-usage2 <- left_join(j_sig, lehag, by = "SeqId")
-usage2 <- usage2[-37,]
-write.csv(usage2, "age_replication_table_all.csv", row.names = F)
-
-# Add a replication status for the age assocs 
-usage2 <- usage2 %>% mutate(Replication = case_when(
-  Age_P_adjust <= 0.05 & adj_age <= 0.05 ~ "1"))
-check <- na.omit(usage2) # 372 - this is actually the true count for the replication match with the extra 2x removed 
-
-# See if we can check the direction of effect has replicated too 
-usage2 <- usage2 %>% mutate(Sign = case_when(
-  Age_beta < 0 ~ "-",
-  Age_beta > 0 ~ "+"))
-
-usage2 <- usage2 %>% mutate(Sign2 = case_when(
-  leh_Age_beta < 0 ~ "-",
-  leh_Age_beta > 0 ~ "+"))
-
-usage2$Replication_direction <- ifelse(usage2$Sign == usage2$Sign2, "1", NA)
-check <- na.omit(usage2) # 340 of the 372 also replicated the direction of effect 
-
-usage2 <- usage2 %>% mutate(Rep_both = case_when(
-  Replication == "1" & Replication_direction == "1" ~ "1"))
-write.csv(usage2, "age_replication_table_all_labelled_with_direction_of_effect.csv", row.names = F)
-
-######################################
-# Read back in table for plotting 
-setwd("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/")
-library(tidyverse)
-library(readxl)
-library(ggplot2)
-usage2 <- read.csv("age_replication_table_all_labelled_with_direction_of_effect.csv")
-
-# Replace NA's with 0's 
-usage2$Rep_both[is.na(usage2$Rep_both)] <- 0
-
-# Plot effect sizes for the proteins where comparisons were available across the studies 
-pdf("Plot_age_replication_BH_340_of_372_of_476_rep.pdf", width = 5, height = 5)
-ggplot(usage2, aes(leh_Age_beta, Age_beta), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("Beta Lehallier et al") +
-      ylab("Beta") +
-       theme(plot.title = element_text(size = 14)) +
-  # geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=2)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red') 
-dev.off()
-
-# Convert to z-scores as effects across both studies 
-# subtract mean and divide by sd
-
-usage2$z_us <- (usage2$Age_beta - mean(usage2$Age_beta, na.rm = T)) / sd(usage2$Age_beta, na.rm = T)
-
-usage2$z_leh <- (usage2$leh_Age_beta - mean(usage2$leh_Age_beta, na.rm = T)) / sd(usage2$leh_Age_beta, na.rm = T)
-
-# Plot the z-transformed effect sizes where comparisons were available across the studies 
-pdf("Plot_age_replication_BH_340_of_372_of_476_rep_z_scores.pdf", width = 5, height = 5)
-ggplot(usage2, aes(z_leh, z_us), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("z-score effect Lehallier et al") +
-      ylab("z-score effect") +
-       theme(plot.title = element_text(size = 14)) +
-   geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=2)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red') + xlim(-10,10) + ylim(-10,10)
-dev.off()
-
-# save as variable for patchworking 
-plot1 <- ggplot(usage2, aes(z_leh, z_us), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("Age z-score effect Lehallier et al") +
-      ylab("Age z-score effect") +
-       theme(plot.title = element_text(size = 14)) +
-   geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=1)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red') + xlim(-10,10) + ylim(-10,10)
-
-# check on the odd outlier 
-which(usage2$leh_Age_beta > 0.01) # row 6
-
-#################################################
-### REPEAT THE SAME FOR SEX REPLICATION
-j_sig2 <- j_sig2[c(1,12:14,19,20)]
-j_sig2$SeqId <- as.character(j_sig2$SeqId)
-ussex <- merge(j_sig2, lehse, by = "SeqId", all = T) 
-ussex2 <- ussex %>% filter(Sex_P_adjust <= 0.05) # 451
-length(unique(ussex2$SeqId)) # 450
-n_occur <- data.frame(table(ussex2$SeqId)) # its row , which is 2953-31 thats duplicated due to having 2 genes - but its same info so we can remove i think 
-# usage <- usage[-169,]
-# which(n_occur$Freq == "2")
-# n <- n_occur[2295,]
-write.csv(ussex2, "sex_replication_table.csv", row.names = F)
-
-# Make sure all were available 
-usage2 <- left_join(j_sig2, lehse, by = "SeqId")
-usage2 <- usage2[-25,]
-write.csv(usage2, "sex_replication_table_all.csv", row.names = F)
-
-# Add a replication status for the age assocs 
-usage2 <- usage2 %>% mutate(Replication = case_when(
-  Sex_P_adjust <= 0.05 & adj_sex <= 0.05 ~ "1"))
-check <- na.omit(usage2) # 380 - this is actually the true count for the replication match with the extra 2x removed 
-
-# See if we can check the direction of effect has replicated too 
-usage2 <- usage2 %>% mutate(Sign = case_when(
-  Sex_beta < 0 ~ "-",
-  Sex_beta > 0 ~ "+"))
-
-usage2 <- usage2 %>% mutate(Sign2 = case_when(
-  leh_Sex_beta < 0 ~ "-",
-  leh_Sex_beta > 0 ~ "+"))
-
-usage2$Replication_direction <- ifelse(usage2$Sign == usage2$Sign2, "1", NA)
-check <- na.omit(usage2) # 372 of the 380 also replicated the direction of effect 
-
-usage2 <- usage2 %>% mutate(Rep_both = case_when(
-  Replication == "1" & Replication_direction == "1" ~ "1"))
-write.csv(usage2, "sex_replication_table_all_labelled_with_direction_of_effect.csv", row.names = F)
+write.csv(leh, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/lehalier_renamed_and_complete.csv", row.names = F)
 
 
-######################################
-# Read back in table for plotting 
-setwd("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/")
-library(tidyverse)
-library(readxl)
-library(ggplot2)
-usage2 <- read.csv("sex_replication_table_all_labelled_with_direction_of_effect.csv")
+################
 
-# Replace NA's with 0's 
-usage2$Rep_both[is.na(usage2$Rep_both)] <- 0
+## Read age sex comparison files back into R for each study 
 
-# Plot the effect sizes for the proteins where comparisons were available across the studies 
-pdf("Plot_sex_replication_BH_372_of_380_of_450_rep.pdf", width = 5, height = 5)
-ggplot(usage2, aes(leh_Sex_beta, Sex_beta), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("Beta Lehallier et al") +
-      ylab("Beta") +
-       theme(plot.title = element_text(size = 14)) +
-  # geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=2)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red')
-dev.off()
+screen
 
-# Convert to z-scores as effects across both studies 
-# subtract mean and divide by sd
-
-usage2$z_us <- (usage2$Sex_beta - mean(usage2$Sex_beta, na.rm = T)) / sd(usage2$Sex_beta, na.rm = T)
-
-usage2$z_leh <- (usage2$leh_Sex_beta - mean(usage2$leh_Sex_beta, na.rm = T)) / sd(usage2$leh_Sex_beta, na.rm = T)
-
-# Plot the z-transformed effect sizes where comparisons were available across the studies 
-pdf("Plot_sex_replication_BH_372_of_380_of_450_rep_z_scores.pdf", width = 5, height = 5)
-ggplot(usage2, aes(z_leh, z_us), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("z-score effect Lehallier et al") +
-      ylab("z-score effect") +
-       theme(plot.title = element_text(size = 14)) +
-   geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=2)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red') + xlim(-9,9) + ylim(-9,9)
-dev.off()
-
-# save as variable for plotting via patchwork 
-plot2 <- ggplot(usage2, aes(z_leh, z_us), scale="globalminmax") +
-       geom_vline(xintercept = 0, linetype = 1) +
-       geom_hline(yintercept = 0, linetype = 1) +
-       geom_point() +
-       theme_minimal() +
-      xlab("Sex z-score effect Lehallier et al") +
-      ylab("Sex z-score effect") +
-       theme(plot.title = element_text(size = 14)) +
-   geom_abline(slope=1, intercept=0, linetype = 2) +
-  geom_point(data=usage2[usage2$Rep_both =="1",], shape=21, fill="white", size=1)+
-  geom_point(data=usage2[usage2$Rep_both !="1",], colour='red') + xlim(-9,9) + ylim(-9,9)
-
-# Patch together age and sex repl plots 
-library(patchwork)
-plot <- plot1 + plot2
-pdf("Y:/Danni/stradl_markers/Plots/SUPPL_replication_age_sex/plot_joint_age_sex.pdf", width = 12, height = 6)
-plot
-dev.off()
-
-#########################################################################################################
-
-### NOW COLLATE THE RESULTS TABLES FOR REPORTING IN SUPPLEMENTARY TABLE
-
-# Input the age and sex results for all 4235 proteins
-# Mark out which of these replicated with lehalier for association and direction of effect 
-# Save a table with both age and sex proteomes and whether they replicated 
+R
 
 library(tidyverse)
 library(readxl)
 
-setwd("Y:/Danni/stradl_markers/pheWAS/03_lmekin_rank_inverse_280321/results_age_sex/")
-age <- read.csv("pcalc_main_RI_age_results_file.csv")
-sex <- read.csv("pcalc_main_RI_sex_results_file.csv")
+sunage <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/sun_age.csv")
+sunsex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/sun_sex.csv")
+ferkage <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/ferkingstad_age.csv")
+ferksex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/ferkingstad_sex.csv")
+leh <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/lehalier_renamed_and_complete.csv")
 
-# select just the info we need for the table 
-age <- age[c(1,5,6,2,3,9,10)]
-sex <- sex[c(1,5,6,2,3,9,10)]
+# get sets of significant results
+lehage <- leh[which(leh$leh_Age_P_adj <= 0.05),] # 1379 - matches their paper exactly  
+lehsex <- leh[which(leh$leh_Sex_P_adj <= 0.05),] # 1651 - matches their paper exactly 
 
-# add col for those with FDR P < 0.05 in our study 
-age$Age_FDR_pass <- ifelse(age$Age_P_adjust <= 0.05, "yes", "no")
-check <- age %>% filter(age$Age_FDR_pass == "yes")
-dim(check) # 798 
+sunage <- sunage[which(sunage$ageP <= 1e-5),] # 662 
+sunsex <- sunsex[which(sunsex$femaleP <= 1e-5),] # 1249
 
-sex$Sex_FDR_pass <- ifelse(sex$Sex_P_adjust <= 0.05, "yes", "no")
-check <- sex %>% filter(sex$Sex_FDR_pass == "yes")
-dim(check) # 798 
+dim(ferkage) # 4306 
+dim(ferksex) # 2921
 
-## Read in the replication tables with direction of effect indications  
-rep1 <- read.csv("age_replication_table_all_labelled_with_direction_of_effect.csv")
-rep2 <- read.csv("sex_replication_table_all_labelled_with_direction_of_effect.csv")
+# sun - flip effect direction
+# our betas are sex(M), lehallier is sex(M) and sun is sex (F)
 
-check <- rep1 %>% filter(Rep_both == "1")
-dim(check) # 340 
+sunsex[,10][sapply(sunsex[,10], is.numeric)] <- sunsex[,10][sapply(sunsex[,10], is.numeric)] * -1
 
-check <- rep2 %>% filter(Rep_both == "1")
-dim(check) # 372
+## Read in our age sex results 
 
-# Create a column signifying whether status = replicated vs unreplicated
-rep1$Rep_both[is.na(rep1$Rep_both)] <- 0 
-rep1$Age_replication <- ifelse(rep1$Rep_both == "1", "Replicated", "Unreplicated")
+age <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/age_results_file.csv")
+sex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/sex_results_file.csv")
 
-rep2$Rep_both[is.na(rep2$Rep_both)] <- 0 
-rep2$Sex_replication <- ifelse(rep2$Rep_both == "1", "Replicated", "Unreplicated")
+# Merge age and sex results together
+agesex <- left_join(age, sex, by = "SeqId")
 
-# Select just the seqId and replication assessment for joining 
-rep1 <- rep1[c(1,16)]
-rep2 <- rep2[c(1,15)]
+# Work out how many age assocs were also sex assocs 
+age_sig <- filter(agesex, Age_Pcalc < 0.0003496503) # 587
+sex_sig <- filter(agesex, Sex_Pcalc < 0.0003496503) # 
+agesexsig <- filter(age_sig, Sex_Pcalc < 0.0003496503) # now 222 
 
-# Join to main results file for age and sex proteomes 
-age_join <- left_join(age, rep1, by = "SeqId")
-sex_join <- left_join(sex, rep2, by = "SeqId")
 
-# Set the NA values to "Comparison unavailable"
-age_join$Age_replication[is.na(age_join$Age_replication)] <- "Comparison unavailable"
-sex_join$Sex_replication[is.na(sex_join$Sex_replication)] <- "Comparison unavailable"
+## Now index whether there are proteins that replicated across studies 
 
-# Join these tables together 
-join <- left_join(age_join, sex_join, by = "SeqId")
-join <- join[c(1:9,12:17)]
+#age 
+age <- age[c(1,6,2,3,8)]
+age$Sig <- ifelse(age$Age_Pcalc < 0.0003496503, "yes", "no") # 587 associations in our study 
+age$Lehallier_rep <- "no"
+age$Ferkingstad_rep <- "no"
+age$Sun_rep <- "no"
+
+# age vs lehallier 
+age <- left_join(age, lehage, by = "SeqId")
+age <- left_join(age, ferkage, by = "SeqId")
+age <- left_join(age, sunage, by = "SeqId")
+
+# sign(age$Age_beta[i])==sign(age$leh_Age_beta)[i]
+
+for(i in 1:4235){
+  prot <- as.character(age$SeqId[i])
+  if(age$Sig[i] == "yes" & prot %in% lehage$SeqId == TRUE & sign(age$Age_beta[i])==sign(age$leh_Age_beta)[i]){
+    age[i,7] <- "yes"
+  } else {
+    print("null")
+  }
+
+  if(age$Sig[i] == "yes" & prot %in% ferkage$SeqId == TRUE & sign(age$Age_beta[i])==sign(age$betaage)[i]){
+    age[i,8] <- "yes"
+  } else {
+    print("null")
+  }
+
+  if(age$Sig[i] == "yes" & prot %in% sunage$SeqId == TRUE & sign(age$Age_beta[i])==sign(age$agebeta)[i]){
+    age[i,9] <- "yes"
+  } else {
+    print("null")
+  }
+}
+
+
+# Work out total number of comparable associations between them:
+sig <- age[age$Sig == "yes",]
+sig <- sig$SeqId
+
+length(which(sig %in% ferkage$SeqId)) # 584
+length(which(sig %in% sunage$SeqId)) # 175
+length(which(sig %in% lehage$SeqId)) # 291
+
+# Of 587 assocs, there were this many that replicated in the cohorts:
+table(age$Ferkingstad_rep)
+table(age$Sun_rep)
+table(age$Lehallier_rep)
+
+
+# before adjusting for direction of betas:
+#   no  yes
+# 3652  583
+
+# > 
+#   no  yes
+# 4060  175
+
+# > 
+#   no  yes
+# 3945  290
+
+# after adjusting for direction of betas:
+
+#   no  yes
+# 3702  580
+
+#   no  yes
+# 4111  158
+
+#   no  yes
+# 3963  273
+
+
+# so of 1050 comparable assocs, 1021 replicate 
+# this is 97% of comparable assocs for age 
+
+## sex
+sex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/Age_sex/sex_results_file.csv")
+sex <- sex[c(1,6,2,3,8)]
+sex$Sig <- ifelse(sex$Sex_Pcalc < 0.0003496503, "yes", "no") # 545 associations in our study 
+sex$Lehallier_rep <- "no"
+sex$Ferkingstad_rep <- "no"
+sex$Sun_rep <- "no"
+
+lehsex <- lehsex[c(1,5,6,7)]
+ferksex <- ferksex[c(1,15,16)]
+sunsex <- sunsex[c(1,10,11,12)]
+
+sex <- left_join(sex, lehsex, by = "SeqId")
+sex <- left_join(sex, ferksex, by = "SeqId")
+sex <- left_join(sex, sunsex, by = "SeqId")
+
+
+for(i in 1:4235){
+  prot <- as.character(sex$SeqId[i])
+  if(sex$Sig[i] == "yes" & prot %in% lehsex$SeqId == TRUE & sign(sex$Sex_beta[i])==sign(sex$leh_Sex_beta)[i]){
+    sex[i,7] <- "yes"
+  } else {
+    print("null")
+  }
+
+  if(sex$Sig[i] == "yes" & prot %in% ferksex$SeqId == TRUE & sign(sex$Sex_beta[i])==sign(sex$betamale)[i]){
+    sex[i,8] <- "yes"
+  } else {
+    print("null")
+  }
+
+  if(sex$Sig[i] == "yes" & prot %in% sunsex$SeqId == TRUE & sign(sex$Sex_beta[i])==sign(sex$femalebeta)[i]){
+    sex[i,9] <- "yes"
+  } else {
+    print("null")
+  }
+}
+
+
+# Work out total number of comparable associations between them:
+sig <- sex[sex$Sig == "yes",]
+sig <- sig$SeqId
+
+length(which(sig %in% ferksex$SeqId)) # 514
+length(which(sig %in% sunsex$SeqId)) # 241
+length(which(sig %in% lehsex$SeqId)) # 268
+
+# Of 545 assocs, there were this many that replicated in the cohorts:
+table(sex$Ferkingstad_rep)
+table(sex$Sun_rep)
+table(sex$Lehallier_rep)
+
+#   no  yes
+# 3732  505
+
+#   no  yes
+# 4005  232
+
+#   no  yes
+# 3973  264
+
+# Of 1023 possible comparisons, there were 1001 replications
+# this is 98% 
+
+write.csv(sex, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/replication_sex.csv", row.names = F)
+write.csv(age, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/replication_age.csv", row.names = F)
+
+
+###################
+
+### JOIN TO SUPPL TABLE AND SAVE 
+
+screen
+
+R
+
+age <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/replication_age.csv")
+sex <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/replication_sex.csv")
+
+age <- age[c(1:9)]
+sex <- sex[c(1:9)]
+
+sex <- sex[-2]
+
+join <- left_join(age, sex, by = "SeqId")
 
 # Rename and save 
-names(join) <- c("SeqId", "Entrez Gene Name", "Uniprot Full Name",
-  "Age Beta", "Age SE", "Age P", "Age FDR P", "Age FDR P < 0.05", "Age Replication",
-  "Sex Beta", "Sex SE", "Sex P", "Sex FDR P", "Sex FDR P < 0.05", "Sex Replication")
+names(join) <- c("SeqId", "Entrez Gene Name",
+  "Age Beta", "Age SE", "Age P", "Age Significant",
+  "Age Replicated Lehellier", "Age Replicated Ferkingstad", "Age Replicated Sun",
+  "Sex Beta", "Sex SE", "Sex P", "Sex Significant",
+  "Sex Replicated Lehellier", "Sex Replicated Ferkingstad", "Sex Replicated Sun")
 
-write.csv(join, "suppl_table_age_sex.csv", row.names = F)
+write.csv(join, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Replications/replication_joint.csv", row.names = F)
 
 
