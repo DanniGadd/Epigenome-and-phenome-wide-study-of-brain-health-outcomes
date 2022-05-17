@@ -108,7 +108,6 @@ vocabulary <- vocabulary[which(vocabulary$Status == "pass"),]
 list1 <- rbind(list1, vocabulary[c("SeqId", "phenotype", "type", "Gene.Name.Name", "beta", "SE", "Pcalc", "UniProt.Full.Name")])
 
 
-
 # Work out how many assocs for each phenotype and modality 
 # apoe is already 11 as seen above 
 
@@ -178,17 +177,6 @@ bind$stars <- cut(bind$Pcalc, breaks=c(-Inf, 0.0003496503, 0.01, 0.05, Inf), lab
 # Make genes unique 
 names(bind)[2] <- "gene"
 
-# # Plot as single PDF 
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/V2_heatmap_thresholded_cog.pdf", width = 22, height = 4)
-# ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
-#  geom_tile() + scale_fill_gradient2(low="#2C7BB6", mid="white", high="#D7191C") + 
-#  geom_text(aes(label=stars), color="black", size=5) +
-# theme(legend.position = 'None', axis.text.x = element_text(size=8, angle=45, hjust = 0.9),
-#           axis.text.y = element_text(size=8, angle=0)) + xlab("") + ylab("")  + guides(fill=guide_legend(title="Beta effect")) +
-# scale_y_discrete(limits = c("Verbal Reasoning", "Vocabulary", "Logical Memory", "Non-Verbal Reasoning", 
-#   "General Fluid Cognitive Ability", "General Cognitive Ability", "Processing Speed"))
-# dev.off()
-
 # Assign to variable for stitching 
 cogpplot <- ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
  geom_tile() + scale_fill_gradient2(low="#2C7BB6", mid="white", high="#D7191C") + 
@@ -198,14 +186,11 @@ theme(legend.position = 'None', axis.text.x = element_text(size=8, angle=45, hju
 scale_y_discrete(limits = c("Verbal Reasoning", "Vocabulary", "Logical Memory", "Non-Verbal Reasoning", 
   "General Fluid Cognitive Ability", "General Cognitive Ability", "Processing Speed"))
 
-
 # APOE 
 
 apoe <- apoe[c(1,2,3,5,7)]
 apoe$phenotype <- "APOE"
-
 bind <- apoe
-
 
 # Restrict to the proteins of interest across all phenotypes from above 
 bind <- bind[which(bind$SeqId %in% apoel$SeqId),] # list1 has 497 associations in protein PheWAS
@@ -215,16 +200,6 @@ bind$stars <- cut(bind$Pcalc, breaks=c(-Inf, 0.0003496503, 0.01, 0.05, Inf), lab
 
 # Make genes unique 
 names(bind)[2] <- "gene"
-
-# # Plot as single PDF 
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/heatmap_thresholded_apoe.pdf", width = 22, height = 1.6)
-# ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
-#  geom_tile() + scale_fill_gradient2(low="#2C7BB6", mid="white", high="#D7191C") + 
-#  geom_text(aes(label=stars), color="black", size=5) +
-# theme(legend.position = 'None', axis.text.x = element_text(size=8, angle=45, hjust = 0.9),
-#           axis.text.y = element_text(size=8, angle=0)) + xlab("") + ylab("")  + guides(fill=guide_legend(title="Beta effect")) +
-# scale_y_discrete(limits = c("APOE"))
-# dev.off()
 
 # Assign 
 apoeplot <- ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
@@ -236,7 +211,6 @@ scale_y_discrete(limits = c("APOE"))
 
 
 # Imaging
-
 brain <- brain[c(1,2,3,5,7)]
 brain$phenotype <- "Relative Brain Age"
 GGM <- GGM[c(1,2,3,5,7)]
@@ -269,17 +243,6 @@ bind$stars <- cut(bind$Pcalc, breaks=c(-Inf, 0.0003496503, 0.01, 0.05, Inf), lab
 # Make genes unique 
 names(bind)[2] <- "gene"
 
-# # Plot as single PDF 
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/heatmap_thresholded_im.pdf", width = 22, height = 4)
-# ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
-#  geom_tile() + scale_fill_gradient2(low="#2C7BB6", mid="white", high="#D7191C") + 
-#  geom_text(aes(label=stars), color="black", size=5) +
-# theme(legend.position = 'None', axis.text.x = element_text(size=8, angle=45, hjust = 0.9),
-#           axis.text.y = element_text(size=8, angle=0)) + xlab("") + ylab("")  + guides(fill=guide_legend(title="Beta effect")) +
-# scale_y_discrete(limits = c("Fazekas White Matter Hyperintensity Score", "General Mean Diffusivity", "Whole Brain Volume", "Global Grey Matter Volume", 
-#   "General Fractional Anisotropy", "Relative Brain Age", "White Matter Hyperintensity Volume"))
-# dev.off()
-
 # Assign
 implot <- ggplot(aes(x=gene, y=phenotype, fill=beta), data=bind) +
  geom_tile() + scale_fill_gradient2(low="#2C7BB6", mid="white", high="#D7191C") + 
@@ -290,9 +253,7 @@ scale_y_discrete(limits = c("Fazekas White Matter Hyperintensity Score", "Genera
   "General Fractional Anisotropy", "Relative Brain Age", "White Matter Hyperintensity Volume"))
 
 ### PATCHWORK 
-
 library(patchwork)
-
 pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/heatmap_phewas/heatmap_thresholded_joint_individual_plots.pdf", width = 25, height = 9)
 implot / cogpplot / apoeplot +  plot_layout(heights = unit(c(7, 7, 1), c('cm', 'cm', 'cm')))
 dev.off()
@@ -390,15 +351,6 @@ bind <- bind[which(bind$SeqId %in% subset[,1]),]
 # Index the common associations 
 bind$stars <- cut(bind$Pcalc, breaks=c(-Inf, 0.0003496503, 0.01, 0.05, Inf), label=c("*", "", "", ""))
 
-# # Subset to the SeqIds in the top 100 assocs
-# bind <- bind[which(bind$SeqId %in% bind$SeqId[1:100]),]
-
-# # Restrict to the proteins of interest across all phenotypes from above 
-# bind <- bind[which(bind$SeqId %in% list1$SeqId),]
-
-# # Add stars for significance (bonferroni)
-# bind$stars <- cut(bind$Pcalc, breaks=c(-Inf, 0.0000180638, 0.01, 0.05, Inf), label=c("*", "", "", ""))
-
 # Make genes unique 
 names(bind)[2] <- "gene"
 
@@ -476,25 +428,6 @@ plot_data <- table %>%
   arrange(Count) %>% 
   ungroup() %>% 
   mutate(order = row_number())
-
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/heatmap_phewas/test.pdf", width = 12, height = 4)
-# ggplot(plot_data,
-#        aes(x = Count,
-#            xend = 0,
-#            y =  order,
-#            yend = order,
-#            colour = Marker)) +
-#   scale_y_discrete(limits = rev) +
-#   geom_segment() +
-#   geom_point() +
-#   scale_y_continuous(breaks = plot_data$order, labels = plot_data$Phenotype) +
-# scale_fill_manual(values = c("cadetblue1", "lightseagreen", "royalblue3")) +
-#   theme(legend.position = 'None', axis.text.x = element_text(size=15),
-#           axis.text.y = element_text(size=14, angle=0), axis.title = element_text(size=14)) + theme_minimal() +
-# theme(panel.grid.major.y = element_blank()) + theme(legend.title = element_blank()) +
-#   labs(x = "Number of associations with protein levels",
-#        y = "") 
-# dev.off()
 
 # Write source data
 write.csv(plot_data, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig4a_source_barplot.csv", row.names = F)

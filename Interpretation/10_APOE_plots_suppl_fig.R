@@ -34,99 +34,7 @@ pred <- data
 plot_list <- list()
 plot_list2 <- list()
 
-# low="#2C7BB6", mid="white", high="#D7191C"
-
-#        SeqId Gene.Name.Name
-# 1   11293-14          LRRN1
-# 2   12501-10           TBCA
-# 3  10082-251           NEFL #3 - blue
-# 4   17671-58           ING4
-# 5    7223-60        S100A13
-# 6   10046-55          BIRC2 #6 - blue 
-# 7    19158-1            PAF #7 - blue
-# 8     6378-2        C5orf38
-# 9    5744-12           MENT 
-# 10    8922-4          TMCC3
-# 11   2797-56           APOB #11 - red
-
-# for (i in 1:11){
-#   seqid_name <- as.character(data[i,1])
-#   protein_name <- as.character(data[i,2])
-
-#   d1 <- prot[,"apoe"] %>% as.data.frame()
-#   d2 <- prot[,seqid_name] %>% as.data.frame()
-#   d3 <- cbind(d1,d2)
-#   names(d3) <- c("apoe", "prot")
-#   d3 <- na.omit(d3)
-
-#   d1 <- prot[,"APOE"] %>% as.data.frame()
-#   d2 <- prot[,seqid_name] %>% as.data.frame()
-#   d4 <- cbind(d1,d2)
-#   names(d4) <- c("APOE", "prot")
-#   d4$APOE <- as.factor(d4$APOE)
-#   d4 <- na.omit(d4)
-
-#   p = ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
-#   geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
-
-#   q = ggplot(d4, aes(x=APOE , y=prot)) +
-#   geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
-#   geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
-
-#   plot_list[[i]] <- p
-#   plot_list2[[i]] <- q
-
-#    pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/plotting_results/", protein_name, "_", seqid_name, "_plot_sig_proteins_by_hapltotype.pdf"))
-#   ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='lightskyblue3', color = 'lightskyblue3')+
-#   geom_boxplot(width=0.1) + theme_minimal() + xlab("APOE Haplotype") + ylab(protein_name) + theme_classic() + 
-#   theme(legend.title = element_blank(),
-#     legend.position = "none", 
-#     axis.title.x = element_text(size = 27), 
-#     axis.text.x = element_text(size = 27),
-#     axis.text.y = element_text(size = 27),
-#     axis.title.y = element_text(size = 27),
-#     plot.title = element_text(size = 27),
-#     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
-#   dev.off()
-
-
-#   pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/plotting_results/", protein_name, "_", seqid_name, "_plot_sig_proteins_by_hapltotype.pdf"))
-#   ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='lightsalmon', color = 'lightsalmon')+
-#   geom_boxplot(width=0.1) + theme_minimal() + xlab("APOE Haplotype") + ylab(protein_name) + theme_classic() + 
-#   theme(legend.title = element_blank(),
-#     legend.position = "none", 
-#     axis.title.x = element_text(size = 27), 
-#     axis.text.x = element_text(size = 27),
-#     axis.text.y = element_text(size = 27),
-#     axis.title.y = element_text(size = 27),
-#     plot.title = element_text(size = 27),
-#     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
-#   dev.off()
-
-
-#   print(i)
-#   print(seqid_name)
-#   print(protein_name)
-# }
-
-
-# pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/plotting_results/plots_11_sig_proteins_by_hapltotype.pdf"))
-# for (i in 1:11) {
-#     print(plot_list[[i]])
-# }
-# dev.off()
-
-# pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/plotting_results/plots_11_sig_proteins_by_numeric_assignment.pdf"))
-# for (i in 1:11) {
-#     print(plot_list2[[i]])
-# }
-# dev.off()
-
-
-### Individual plots using code above as basis, so that we can patch work them together as one figure 
+### Individual plots, so that we can patch work them together as one figure 
 
 # List APOE proteins 
 # data 
@@ -391,37 +299,10 @@ seqid_name <- as.character(data[i,1])
   names(d3) <- c("apoe", "prot")
   d3 <- na.omit(d3)
 
-  # d1 <- prot[,"APOE"] %>% as.data.frame()
-  # d2 <- prot[,seqid_name] %>% as.data.frame()
-  # d4 <- cbind(d1,d2)
-  # names(d4) <- c("APOE", "prot")
-  # d4$APOE <- as.factor(d4$APOE)
-  # d4 <- na.omit(d4)
-
   p = ggplot(d3, aes(x=apoe , y=prot)) +
   geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
   geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
 
-  # q = ggplot(d4, aes(x=APOE , y=prot)) +
-  # geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
-  # geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
-
-  # plot_list[[i]] <- p
-  # plot_list2[[i]] <- q
-
-  #  pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/pheWAS/plotting_results/", protein_name, "_", seqid_name, "_plot_sig_proteins_by_hapltotype.pdf"))
-  # ggplot(d3, aes(x=apoe , y=prot)) +
-  # geom_violin(trim=FALSE, fill='lightskyblue3', color = 'lightskyblue3')+
-  # geom_boxplot(width=0.1) + theme_minimal() + xlab("APOE Haplotype") + ylab(protein_name) + theme_classic() + 
-  # theme(legend.title = element_blank(),
-  #   legend.position = "none", 
-  #   axis.title.x = element_text(size = 27), 
-  #   axis.text.x = element_text(size = 27),
-  #   axis.text.y = element_text(size = 27),
-  #   axis.title.y = element_text(size = 27),
-  #   plot.title = element_text(size = 27),
-  #   axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
-  # dev.off()
 
 LRRN1 <-  ggplot(d3, aes(x=apoe , y=prot)) +
   geom_violin(trim=FALSE, fill='firebrick2', color = 'firebrick2')+
@@ -521,34 +402,6 @@ APOB <-  ggplot(d3, aes(x=apoe , y=prot)) +
     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
 
 
-# # 13  TP53
-# i <- 13
-# seqid_name <- as.character(data[i,1])
-#   protein_name <- as.character(data[i,2])
-
-#   d1 <- prot[,"apoe"] %>% as.data.frame()
-#   d2 <- prot[,seqid_name] %>% as.data.frame()
-#   d3 <- cbind(d1,d2)
-#   names(d3) <- c("apoe", "prot")
-#   d3 <- na.omit(d3)
-
-#   p = ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
-#   geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
-
-# TP53 <-  ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='firebrick2', color = 'firebrick2')+
-#   geom_boxplot(width=0.1) + theme_minimal() + xlab("APOE Haplotype") + ylab(protein_name) + theme_classic() + 
-#   theme(legend.title = element_blank(),
-#     legend.position = "none", 
-#     axis.title.x = element_text(size = 27), 
-#     axis.text.x = element_text(size = 27),
-#     axis.text.y = element_text(size = 27),
-#     axis.title.y = element_text(size = 27),
-#     plot.title = element_text(size = 27),
-#     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
-
-
 # 14 FAM20A
 i <- 14
 seqid_name <- as.character(data[i,1])
@@ -603,34 +456,6 @@ PEF1 <-  ggplot(d3, aes(x=apoe , y=prot)) +
     axis.title.y = element_text(size = 27),
     plot.title = element_text(size = 27),
     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
-
-
-# # 16  PLA2G7
-# i <- 16
-# seqid_name <- as.character(data[i,1])
-#   protein_name <- as.character(data[i,2])
-
-#   d1 <- prot[,"apoe"] %>% as.data.frame()
-#   d2 <- prot[,seqid_name] %>% as.data.frame()
-#   d3 <- cbind(d1,d2)
-#   names(d3) <- c("apoe", "prot")
-#   d3 <- na.omit(d3)
-
-#   p = ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
-#   geom_boxplot(width=0.1) + theme_minimal() + ggtitle(protein_name)
-
-# PLA2G7 <-  ggplot(d3, aes(x=apoe , y=prot)) +
-#   geom_violin(trim=FALSE, fill='firebrick2', color = 'firebrick2')+
-#   geom_boxplot(width=0.1) + theme_minimal() + xlab("APOE Haplotype") + ylab(protein_name) + theme_classic() + 
-#   theme(legend.title = element_blank(),
-#     legend.position = "none", 
-#     axis.title.x = element_text(size = 27), 
-#     axis.text.x = element_text(size = 27),
-#     axis.text.y = element_text(size = 27),
-#     axis.title.y = element_text(size = 27),
-#     plot.title = element_text(size = 27),
-#     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
 
 
 library(patchwork)

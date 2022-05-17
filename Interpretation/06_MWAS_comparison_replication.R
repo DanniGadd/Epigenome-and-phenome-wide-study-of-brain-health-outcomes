@@ -7,6 +7,8 @@
 library(tidyverse)
 library(readxl)
 
+# Assessment of which proteins have been assessed previously in KORA/Rob studies
+
 ############################################################################################
 
 ### Read in STRADL datasets 
@@ -25,33 +27,33 @@ STRADL <- prot %>% as.data.frame()
 rob1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Proxies_stradl/275_Uniprots_in_STRADL_Annotated.csv")
 match <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/rob_list_preprint_190821.xlsx")
 names(match) <- c("Uniprot_ID", "SeqId")
-# list <- rob$Uniprot_ID
+list <- rob$Uniprot_ID
 
-# # Read in anno file with linkers from daniel / liu  
-# anno3 = read.csv("/Cluster_Filespace/Marioni_Group/Daniel/Somalogic_GWAS/annotation.csv", header=F)
-# anno3 = t(anno3)
+# Read in anno file with linkers from daniel / liu  
+anno3 = read.csv("/Cluster_Filespace/Marioni_Group/Daniel/Somalogic_GWAS/annotation.csv", header=F)
+anno3 = t(anno3)
 
-# # Get the linker file to s format that is seqIds and uniprot Ids for all STRADL proteins 
-# link <- anno3 %>% as.data.frame()
-# rownames(link) <- NULL 
-# link <- link[c(1,2)]
-# names(link) <- c("SeqId", "Uniprot_ID")
+# Get the linker file to s format that is seqIds and uniprot Ids for all STRADL proteins 
+link <- anno3 %>% as.data.frame()
+rownames(link) <- NULL 
+link <- link[c(1,2)]
+names(link) <- c("SeqId", "Uniprot_ID")
 
-# # Get the list from rob into a format where its the list of entries and uniprot IDs 
-# rob_link <- rob[c(1,2)]
+# Get the list from rob into a format where its the list of entries and uniprot IDs 
+rob_link <- rob[c(1,2)]
 
-# # A little check to make sure we are picking up everything 
-# ov <- which(link$V2 %in% c("Q07954"))
-# link2 <- link[ov,]
+# A little check to make sure we are picking up everything 
+ov <- which(link$V2 %in% c("Q07954"))
+link2 <- link[ov,]
 
-# # Match seqIds to the list from rob 
-# match <- left_join(rob_link, link, by = "Uniprot_ID")
+# Match seqIds to the list from rob 
+match <- left_join(rob_link, link, by = "Uniprot_ID")
 
-# # Chekc size
-# dim(match) # 333
+# Chekc size
+dim(match) # 333
 
-# # Save a copy of the rob list which has seqIds matched to it 
-# write.csv(match, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/rob_list_indexed_to_seqIds.csv", row.names = F)
+# Save a copy of the rob list which has seqIds matched to it 
+write.csv(match, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/rob_list_indexed_to_seqIds.csv", row.names = F)
 
 ############################################################################################
 
@@ -66,9 +68,6 @@ names(match) <- c("Uniprot_ID", "SeqId")
 prot <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/Phenotype_file_778.csv")
 names(prot)[2] <- "Stradl_id"
 prot <- prot[-1] # we dont need GS id here but good to keep for reference 
-# wh <- which(prot1$Stradl_id %in% prot$st) # all 778 present, just matched differently 
-# order <- prot$st
-# matched <- prot1[match(order, prot1$Stradl_id),]
 
 stradl <- colnames(prot)[-1] 
 stradl <- as.data.frame(stradl) 
@@ -170,26 +169,20 @@ rob <- left_join(rob, mapping, by = "UniProt")
 rob$assoc <- paste(rob$SeqId, rob$CpG, sep = "_")
 
 # Subset so that no overlapping associations remain in my results file from current lists - for the 89 neuro first to check no overlaps 
-
 ov <- all[which(all$assoc %in% zag$assoc),] # none 
-
 res <- all[-which(all$assoc %in% zag$assoc),] # none
 
 # Now look at which are overlapping with robs 
 overlap <- res[which(res$assoc %in% rob$assoc),] # none
 
 # # Now get those that did not overlap:
-# result <- res[-which(all$assoc %in% rob$assoc),] 
-
-
+result <- res[-which(all$assoc %in% rob$assoc),] 
 
 ### Now do the same lookup but across the fully adjusted results in general, not just neuro results 
 full <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/FULL_cistrans_table_unformatted_naming_second_threshold.csv")
-
 full$assoc <- paste(full$SeqId, full$Probe, sep = "_") # 2797 to subset from 
 
 # ov2 <- full[which(full$assoc %in% rob$assoc),] # 10 
-
 ov <- full[which(full$assoc %in% zag$assoc),] # 31 overlapped 
 
 # 26 pQTMs overlapping with zaghlool et al
@@ -221,13 +214,10 @@ ov <- full[which(full$assoc %in% zag$assoc),] # 31 overlapped
 # 2440 3485-28_cg07839457
 # 2830  3038-9_cg07839457
 
-
 sub1 <- full[-which(full$assoc %in% zag$assoc),] # 2928 to 2902
 
 # Now look at robs overlap across all 
-
 ov2 <- sub1[which(sub1$assoc %in% rob$assoc),] # 10 
-
 
 #      gene_start  gene_end Chr     diff     diff2 Effect               assoc
 # 10    113105788 113120685  13   667370 226878946    CIS  3184-25_cg19086603
@@ -241,26 +231,18 @@ ov2 <- sub1[which(sub1$assoc %in% rob$assoc),] # 10
 # 1593   94612384  94624055  14   494543 189719311    CIS  4153-11_cg15876198
 # 1995   71998613  72005715  11 14975591 129021635  TRANS  3073-51_cg07839457
 
-
-
 sub2 <- sub1[-which(sub1$assoc %in% rob$assoc),] # 2892
-
 # updated to 2892 novel, with 26 from shaza and durther 10 from robs - 36 total (2928 overall)
 
-
 # Now check to see how many of the novel pQTMs were due to not being measured previously in Zaghlool at al
-
 # read in 793 matches across ours and KORA study 
 matches <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/KORA_list_793_indexed_to_seqIds.csv")
-
 # Subset our novel results to remove any previously measured proteins
 sub3 <- sub2[-which(sub2$SeqId %in% matches$ID),] # 1783
 before <- sub2[which(sub2$SeqId %in% matches$ID),] # 1109
-
 # so 1783 of the 2928 were due to not being measured before
 length(unique(sub3$SeqId)) # 150 additional seqids
 length(unique(sub3$gene)) # 148 proteins 
-
 
 #   [1] "MDGA1"     "EBI3"      "CTNNB1"    "LILRA3"    "GSTM3"     "B3GNT8"
 #   [7] "NRXN1"     "LRP11"     "CRISP2"    "COPS7B"    "IL26"      "ICAM4"
@@ -290,16 +272,11 @@ length(unique(sub3$gene)) # 148 proteins
 
 
 # If we remove PRG3, how many associations that are novel and unmeasured remain 
-
 PRG3 <- sub3[which(sub3$gene %in% "PRG3"),] # 1116
-
 sub4 <- sub3[-which(sub3$gene %in% "PRG3"),] # 667 
-
-
 
 # so 1109 were due to protein measured before
 length(unique(before$gene)) # 41 proteins
-
 before_sub <- before[-which(before$gene %in% "PAPPA"),] # 136 associations remaining - with 40 proteins 
 
 #  [1] "HGFAC"    "PDK1"     "MICA"     "PCSK7"    "TPSB2"    "CLEC11A"
@@ -309,12 +286,5 @@ before_sub <- before[-which(before$gene %in% "PAPPA"),] # 136 associations remai
 # [25] "CD5L"     "EDAR"     "POR"      "RETN"     "VCAM1"    "ECM1"
 # [31] "F7"       "ICAM5"    "SLITRK5"  "LGALS3"   "CST5"     "IMPDH1"
 # [37] "TNFRSF1B" "MPL"      "LRPAP1"   "B2M"
-
-
-
-
-
-
-
 
 

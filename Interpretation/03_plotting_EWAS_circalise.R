@@ -8,8 +8,6 @@ screen
 R
 
 all <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/slice_neuro_final_35_pQTMs.csv")
-# cis <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Interpretation/interpretation_090621/no_eGFR_cis_FDR_46_assocs_filtered.csv")
-# trans <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Interpretation/interpretation_090621/no_eGFR_trans_FDR_42_assocs_filtered.csv")
 
 all <- all[which(all$Association.Type %in% "TRANS"),] # 15 associations
 unique(all[,9]) # 9 seqids
@@ -95,59 +93,6 @@ bed <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revi
 bed <- as.data.frame(bed)
 
 library(circlize)
-
-
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/circos/circ.pdf", width = 20, height = 20)
-# ## initalize plot 
-# circos.initializeWithIdeogram()
-# circos.genomicTrackPlotRegion(bed, ylim = c(0, 1), track.height = 0.1, bg.border = NA)
-# i_track = get.cell.meta.data("track.index") # remember this empty track, we'll come back
-# circos.genomicTrackPlotRegion(bed, ylim = c(0, 1),
-#                               panel.fun = function(region, value, ...) {
-#                                 circos.genomicText(region, value, y = 1, labels.column = 1,
-#                                                    facing = "clockwise", adj = c(1, 0.5),
-#                                                    posTransform = posTransform.text, cex = 1.2, padding =1)
-#                               }, track.height = 0.15, bg.border = NA)
-
-# tr_track = get.cell.meta.data("track.index") # position transformation track
-# # because `circos.genomicPosTransformLines` is implemented by
-# # `circos.trackPlotRegion`, it accepts `track.index` argument.
-# circos.genomicPosTransformLines(bed,
-#                                 posTransform = function(region, value)
-#                                   posTransform.text(region, y = 1, labels = value[[1]],
-#                                                     cex = 1, padding = 1, track.index = tr_track),
-#                                 direction = "inside", track.index = i_track
-# )
-
-# ## link the trans CpGss to their target Somamer/gene 
-# circos.genomicLink(bed1,bed2, col = rand_color(nrow(bed1)), border= NA)
-# dev.off()
-
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/circos/circ4_V2.pdf", width = 12, height = 12)
-# ## initalize plot 
-# circos.initializeWithIdeogram()
-# circos.genomicTrackPlotRegion(bed, ylim = c(0, 1), track.height = 0.1, bg.border = NA)
-# i_track = get.cell.meta.data("track.index") # remember this empty track, we'll come back
-# circos.genomicTrackPlotRegion(bed, ylim = c(0, 1),
-#                               panel.fun = function(region, value, ...) {
-#                                 circos.genomicText(region, value, y = 1, labels.column = 1,
-#                                                    facing = "clockwise", adj = c(1, 0.5),
-#                                                    posTransform = posTransform.text, cex = 0.8, padding =0.5)
-#                               }, track.height = 0.17, bg.border = NA)
-
-# tr_track = get.cell.meta.data("track.index") # position transformation track
-# # because `circos.genomicPosTransformLines` is implemented by
-# # `circos.trackPlotRegion`, it accepts `track.index` argument.
-# circos.genomicPosTransformLines(bed,
-#                                 posTransform = function(region, value)
-#                                   posTransform.text(region, y = 1, labels = value[[1]],
-#                                                     cex = 0.5, padding = 0.5, track.index = tr_track),
-#                                 direction = "inside", track.index = i_track
-# )
-
-# ## link the trans CpGss to their target Somamer/gene 
-# circos.genomicLink(bed1,bed2, col = rand_color(nrow(bed1)), border= NA)
-# dev.off()
 
 # Write source data
 write.csv(bed, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig5_source_circos.csv", row.names = F)

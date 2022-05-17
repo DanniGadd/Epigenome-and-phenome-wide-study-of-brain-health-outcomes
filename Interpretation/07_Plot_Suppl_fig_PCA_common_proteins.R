@@ -1,5 +1,3 @@
-
-
 ### PLOT FOR COMMON PROTEINS PCA 
 
 cd /Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/common_proteins/
@@ -79,31 +77,11 @@ a <- ggplot(var, aes(num, mes, col = col)) +
 geom_point(size = 4) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
 xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
 scale_color_manual(values=c("#E69F00", "#999999")) 
-# } else { 
-  
-# ggplot(var, aes(num, mes, col = col)) +
-# geom_point(size = 4) + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
-# xlab("Principal component") + ylab("Eigenvalue") + geom_hline(yintercept=1, color = "darkgrey", size=1) + 
-# scale_color_manual(values=c("#E69F00", "#999999")) + scale_x_continuous(n.breaks = ncol(joint))
-# # }
 
 
-# b <- if(ncol(joint) > 12) { 
 b <- ggplot(cum, aes(num, mes)) +
 geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
 xlab("Principal component") + ylab("Cumulative proportion") + ylim(0,1) 
-# } else if(ncol(joint) > 4) { ggplot(cum, aes(num, mes)) +
-#   geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
-#   xlab("Principal component") + ylab("Cumulative proportion") + ylim(0,1) +  scale_x_continuous(n.breaks = ncol(joint))} else { 
-#     ggplot(cum, aes(num, mes)) +
-#       geom_bar(stat = "identity", fill = "steelblue") + theme(legend.position = "none", axis.text=element_text(size=13), axis.title=element_text(size=13)) +
-#       xlab("Principal component") + ylab("Cumulative proportion") + ylim(0,1) 
-    
-#     }
-
-# # c <- if(ncol(joint) > 12){  
-# c <- ggcorrplot(cor, 
-#            hc.order = TRUE)
 
 c <- ggcorrplot(cor, 
            hc.order = TRUE,
@@ -119,36 +97,13 @@ c <- c + theme(
                                 colour = "white")
   )
 
-#            lab_size = 1.5,
-#            colors = c("blue", "white", "red")) +  theme(legend.title = element_blank(), text = element_text(size = 11), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-
-
-# +labs(title = list_diseases[i]) + 
- 
-# } else { 
-#   ggcorrplot(cor, 
-#              hc.order = TRUE, 
-#              lab = TRUE,
-#              type = "lower",
-#              lab_size = 2.5,
-#              colors = c("blue", "white", "red")) +labs(title = list_diseases[i]) + 
-#     theme(legend.title = element_blank(), text = element_text(size = 11), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
-  
-#   } 
 
 p1 = plot_grid(c,a,b, nrow = 1, labels = c("a", "b", "c"), rel_widths = c(0.85,0.5,0.5))
-# list_plots[[i]] <- p1
 
-# print(i)
-# } 
 
 pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/common_proteins/FIGURE_lower_22_proteins.pdf", height =6 , width = 17)
 p1
 dev.off()
-
-# pdf("U:/Protein_DNAm_Proxies/Work_and_code_post_KORA/Supp_Figs/Fig3_Diseases1-3.pdf", height = 11, width = 10.5)
-# plot_grid(list_plots[[1]],list_plots[[2]],list_plots[[3]], nrow = 3)
-# dev.off()
 
 
 

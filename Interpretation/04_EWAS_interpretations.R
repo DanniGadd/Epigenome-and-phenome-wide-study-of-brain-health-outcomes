@@ -41,12 +41,6 @@ names(EWAS_phen)[10] <- "gene"
 count$gene <- as.character(count$gene)
 count$N <- as.integer(count$N)
 
-# # Plot protein association counts 
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/miami/plot_proteins.pdf", width = 20, height = 10)
-# ggplot(data=count, aes(x=gene, y=N)) +
-#   geom_bar(stat="identity")
-# dev.off()
-
 # Which proteins had pQTLs in Sun et al 
 list <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/EWAS_pQTL_extraction_GS/pQTLs_seqId_edited.xlsx")
 list <- as.data.frame(list)
@@ -80,16 +74,6 @@ count <- count3[c(1,2,3,9,10,11,14,15,16)]
 names(count) <- c("SeqId", "Gene of Protein", "Number of CpG Associations", "Sun et al Sentinel Variant", "Sun et al Chromosome", "Sun et al Position", "Sun et al Effect Allele", "Sun et al Other Allele", "pQTL extracted in STRADL")
 
 
-# # Save out table 
-# write.csv(count, paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Interpretation/interpretation_090621/no_eFGR_PROTEIN_summary_with_pQTLs_linked.csv"), row.names = F)
-
-# locate which proteins had eQTLs/mQTLs
-
-
-
-
-
-
 ###################
 
 ### EWAS CPG CAT ANNO
@@ -110,13 +94,6 @@ names(EWAS_phen)[1] <- "Probe"
 	count <- as.data.frame(count)
 	count <- count[order(-count$n),]
 	names(count)[2] <- "No_times_selected_across_proteins"
-
-# Annotate to EWAS catalogue lookup 
-
-# names(count)[1] <- "CpG_site"
-# counts3 <- count(count, CpG_site)
-
-# counts3 <- counts3[order(-counts3$n),]
 
 # Read in catalogue file 
 EWAS <- read.delim("/Cluster_Filespace/Marioni_Group/Danni/LBC_proteins/outputs/Glmnet_re_runs_for_all_analyses/EWAS_catalogue/EWAS_Catalog_03-07-2019.txt")
@@ -151,12 +128,7 @@ for (i in 1:2895){ # get dimensons of the pred results file
 	list <- data_cpg$Short_name %>% unique()
 	str <- str_c(list, collapse = ", ")
 	results[i,"EpiScore"] <- str
-
-	# list2 <- data_cpg$SeqId %>% unique()
-	# str2 <- str_c(list2, collapse = ", ")
-	# results[i,"SeqId"] <- str2
 }
-
 
 # Add in gene of CpG and trans/cis info 
 names(EWAS_phen)[3] <- "CpG_gene"
@@ -167,12 +139,6 @@ results <- left_join(results, add, by = "Probe")
 # Save off results file with annotations for full EWAS 
 results <- unique(results)
 write.csv(results, paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/miami/cpgs_annotated_suppl.csv"), row.names = F)
-
-# # Do a version for the filtered neuro proteins 
-
-# anno <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Annotations_protein_file/annotation_formatted_for_paper.csv")
-
-
 
 
 ##################################################################################################
@@ -214,49 +180,20 @@ ex <- prot[which(prot$CHR %in% "X"),] # work out how many X proteins excluded
 #     8     3
 
 # we will present the associations for chr 1-22 as there are no CpGs on X chromosomes - only two proteins given here
-
 prot <- prot[-which(prot$CHR %in% "X"),] 
-# library(stringr)
-# prot$CHR = str_replace(prot$CHR,"X","23")
 prot$CHR <- as.numeric(prot$CHR)
-
-
-# library(qqman)
-# # Make the Manhattan plot on the gwasResults dataset
-# png("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/miami/miami_cpgs.png", width = 1000, height = 700)
-# manhattan(cpg, chr="CHR", bp="BP", snp="SNP", p="P", annotatePval = 4.5e-10, suggestiveline = F, genomewideline = F, col = c("lightskyblue", "lightgrey"))
-# dev.off()
-
-# # Make the Manhattan plot on the gwasResults dataset
-# png("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/miami/miami_proteins.png", width = 1000, height = 700)
-# manhattan(prot, chr="CHR", bp="BP", snp="SNP", p="P", annotatePval = 4.5e-10,  suggestiveline = F, genomewideline = F, col = c("lightskyblue", "lightgrey"))
-# dev.off()
-
 
 # Join datasets for miami
 miami_dat = rbind(cpg[,c("CHR", "BP", "SNP", "Data", "P")], prot[,c("CHR", "BP", "SNP", "Data", "P")])
 
-
 ### TRY GG MIAMI 
-
 library(devtools)
 install_github("juliedwhite/miamiplot")
 library(miamiplot)
 
-#   upper_labels_df = NULL,
-#   lower_labels_df = NULL,
-#   upper_highlight = NULL,
-#   upper_highlight_col = NULL,
-#   upper_highlight_color = "green",
-#   lower_highlight = NULL,
-#   lower_highlight_col = NULL,
-#   lower_highlight_color = "green"
-
 ### Create labels for upper and lower plots separately 
-
 # Assign labels to miami_dat file for input 
 names(miami_dat)[1:3] <- c("chr", "pos", "rsid")
-
 # Access the data being plotted
 plot_data <- prep_miami_data(data = miami_dat, split_by = "Data", 
                              split_at = "EWAS_v2", p = "P")
@@ -303,35 +240,4 @@ dev.off()
 
 # Write source data
 write.csv(miami_dat, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig3a_source_circos.csv", row.names = F)
-
-
-# # Get the position of the two peaks +- 100 bp.
-# studyA_highlight_pos <- plot_data$upper %>%
-#   filter(P < 5e-8) %>%
-#   group_by(chr) %>%
-#   filter(P == min(P)) %>%
-#   summarise(start = rel_pos - 100, end = rel_pos + 100) %>%
-#   select(-chr) %>%
-#   apply(., 1, function(x) x["start"]:x["end"]) %>%
-#   as.vector()
-
-
-# # Find which rsids match these SNPs
-# studyA_highlight_rsid <- plot_data$upper %>%
-#   mutate(in_peak = case_when(rel_pos %in% studyA_highlight_pos ~ "Yes", 
-#                              TRUE ~ "No")) %>%
-#   filter(in_peak == "Yes") %>%
-#   select(rsid)
-
-# # ,"cg00676801","cg00959259","cg01958934","cg06688803","cg06716655","cg07815522",
-# # "cg08701064","cg09555818","cg09858955","cg10872931","cg11879188", "cg12415337","cg13119609","cg22294278","cg22930808"
-
-
-# # # Rename X to chr 23 and convert to numeric 
-# # library(dplyr)
-# # prot <- prot %>% 
-# #   mutate(CHR = as.character(CHR)) %>% 
-# #   mutate(CHR = replace(CHR, CHR == 'X', '23'))
-# # prot$CHR <- as.numeric(prot$CHR)
-
 

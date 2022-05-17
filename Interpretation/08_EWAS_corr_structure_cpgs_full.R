@@ -11,10 +11,8 @@ screen
 R
 
 library(data.table)
-# t <- fread("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Methylation_preps/methylation_774_meth_order_FULL_310121.txt")
 
 ### LOAD DNAm as per fully-adjusted models
-
 ## Read in methylation files and transpose so CpGs are columns and IDs are rows
 library(data.table) 
 w2 = readRDS("/Cluster_Filespace/Marioni_Group/Rob/Somalogic/wave2-STRADL-mvals.rds")
@@ -159,11 +157,8 @@ length(unique(cpgs$CpG)) # 423 CpGs in 580 associations - updated to 597 CpGs in
 
 # Subset DNAm to three groups as above
 meth_cpgs <- full[,which(colnames(full) %in% cpgs$CpG)]
-
 meth_PRG3 <- full[,which(colnames(full) %in% PRG3$CpG)]
-
 meth_PAPPA <- full[,which(colnames(full) %in% PAPPA$CpG)]
-
 
 # > dim(meth_cpgs)
 # [1] 774 597
@@ -186,9 +181,7 @@ PAPPA_top <- PAPPA[c(1:100),]
 
 # Top 100 P PRG3 
 PRG3_top <- PRG3[c(1:100),]
-
 meth_PRG3_top <- full[,which(colnames(full) %in% PRG3_top$CpG)]
-
 meth_PAPPA_top <- full[,which(colnames(full) %in% PAPPA_top$CpG)]
 
 
@@ -197,19 +190,10 @@ meth_PAPPA_top <- full[,which(colnames(full) %in% PAPPA_top$CpG)]
 ### PLOT pQTM associations 
 
 slice <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/cis_trans/slice_neuro_final_35_pQTMs_pQTLs_added.csv")
-
 prot <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS/01_Phenotype_collation/prot_file_220221.csv", check.names = F)
-
-# # subset methylation to cpgs of interest
-# meth_neuro <- full[,which(colnames(full) %in% slice$CpG)]
-# meth_neuro <- as.data.frame(meth_neuro)
-# meth_neuro$GS_id <- rownames(meth_neuro)
 
 # Join protei data to methylation data 
 prot$GS_id <- as.character(prot$GS_id)
-# neuro <- left_join(meth_neuro, prot, by = "GS_id")
-# write.csv(neuro, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/plots_neuro_assocs/plots/neuro_joint_protein_cpgs.csv")
-
 neuro <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/plots_neuro_assocs/plots/neuro_joint_protein_cpgs.csv", check.names = F)
 
 # Plot associations of interest 
@@ -228,11 +212,6 @@ for(i in 1:length(table$CpG)){
     data2 <- neuro[,protein] %>% as.data.frame()
     dataset <- cbind(data,data2)
     names(dataset) <- c("CpG", "Protein")
-    # pdf(paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/plots_neuro_assocs/plots/", CpG, "_", protein, ".pdf"))
-    #  ggplot(dataset, aes(x=CpG,y=Protein)) +
-    #  geom_point(alpha=0.5) +
-    #  labs(x= CpG, y=protein)
-    # dev.off()
      p <- ggplot(dataset, aes(x=CpG,y=Protein)) +
      geom_point(alpha=0.5, color = "darkblue") +
      labs(x= CpG, y=gene) + theme_classic() + 
@@ -246,13 +225,6 @@ for(i in 1:length(table$CpG)){
     axis.title.x.bottom = element_text(margin = margin(14, 0, 0, 0)))
     plots[[i]] <- p
 }
-
-# # Save off
-# pdf(file = paste0("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/neuro_pQTMs.pdf"))
-# for (i in 1:length(plots)) {
-#     print(plots[[i]])
-# }
-# dev.off()
 
 # library(gridExtra)
 ggsave("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/arrange.pdf", arrangeGrob(grobs = plots), device = "pdf", height = 20, width = 25)
@@ -333,7 +305,6 @@ scale_color_manual(values=c("#E69F00", "#999999"))
 dev.off()
 
 # first eigenvalue was 1987.89029 - but set to 300 for purposes of visualisation
-
 names(var)[4] <- "cum"
 # Cumulative variance 
 pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/updated_130322_extra_plots/CPGS_597_cum_var.pdf")
@@ -524,64 +495,64 @@ xlab("Principal component") + ylab("Cumulative proportion")
 dev.off()
 
 
-########################################################
+# ########################################################
 
-### TAKE TOP 100 FROM PAPPA AND PRG3 and correlate with main cpgs 
+# ### TAKE TOP 100 FROM PAPPA AND PRG3 and correlate with main cpgs 
+
+# # # ggcorrplot
+# # library(ggcorrplot)
+# # corr <- cor(meth_PAPPA_top)
+# # pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_top_100_PAPPA.pdf", width = 60, height = 60)
+# # ggcorrplot(corr,
+# #      outline.col = "white") + theme(text = element_text(size = 0.2)) 
+# # dev.off()
+
+
+# # # ggcorrplot
+# # library(ggcorrplot)
+# # corr <- cor(meth_PRG3_top)
+# # pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_top_100_PRG3.pdf", width = 60, height = 60)
+# # ggcorrplot(corr,
+# #      outline.col = "white") + theme(text = element_text(size = 0.2)) 
+# # dev.off()
+
 
 # # ggcorrplot
 # library(ggcorrplot)
-# corr <- cor(meth_PAPPA_top)
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_top_100_PAPPA.pdf", width = 60, height = 60)
-# ggcorrplot(corr,
-#      outline.col = "white") + theme(text = element_text(size = 0.2)) 
+# corr <- cor(meth_cpgs)
+# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_597_unique_cpgs.pdf", width = 25, height = 25)
+# ggcorrplot(corr, type = "upper",
+#      outline.col = "white", hc.order = TRUE) +
+#   theme(axis.text.x=element_text(size=1),
+#         axis.text.y=element_text(size=1), legend.position = "none")
 # dev.off()
-
 
 # # ggcorrplot
 # library(ggcorrplot)
-# corr <- cor(meth_PRG3_top)
-# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_top_100_PRG3.pdf", width = 60, height = 60)
-# ggcorrplot(corr,
-#      outline.col = "white") + theme(text = element_text(size = 0.2)) 
+# corr <- cor(meth_PAPPA)
+# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_PAPPA_all.pdf", width = 25, height = 25)
+# ggcorrplot(corr, type = "upper",
+#      outline.col = "white", hc.order = TRUE) +
+#   theme(axis.text.x=element_text(size=1),
+#         axis.text.y=element_text(size=1), legend.position = "none")
 # dev.off()
 
+# # ggcorrplot
+# library(ggcorrplot)
+# corr <- cor(meth_PRG3)
+# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_PRG3_all.pdf", width = 25, height = 25)
+# ggcorrplot(corr, type = "upper",
+#      outline.col = "white", hc.order = TRUE) +
+#   theme(axis.text.x=element_text(size=1),
+#         axis.text.y=element_text(size=1), legend.position = "none")
+# dev.off()
 
-# ggcorrplot
-library(ggcorrplot)
-corr <- cor(meth_cpgs)
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_597_unique_cpgs.pdf", width = 25, height = 25)
-ggcorrplot(corr, type = "upper",
-     outline.col = "white", hc.order = TRUE) +
-  theme(axis.text.x=element_text(size=1),
-        axis.text.y=element_text(size=1), legend.position = "none")
-dev.off()
-
-# ggcorrplot
-library(ggcorrplot)
-corr <- cor(meth_PAPPA)
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_PAPPA_all.pdf", width = 25, height = 25)
-ggcorrplot(corr, type = "upper",
-     outline.col = "white", hc.order = TRUE) +
-  theme(axis.text.x=element_text(size=1),
-        axis.text.y=element_text(size=1), legend.position = "none")
-dev.off()
-
-# ggcorrplot
-library(ggcorrplot)
-corr <- cor(meth_PRG3)
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_PRG3_all.pdf", width = 25, height = 25)
-ggcorrplot(corr, type = "upper",
-     outline.col = "white", hc.order = TRUE) +
-  theme(axis.text.x=element_text(size=1),
-        axis.text.y=element_text(size=1), legend.position = "none")
-dev.off()
-
-# ggcorrplot
-library(ggcorrplot)
-corr <- cor(meth_all)
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_ALL_cpgs.pdf", width = 25, height = 25)
-ggcorrplot(corr, type = "upper",
-     outline.col = "white", hc.order = TRUE) +
-  theme(axis.text.x=element_text(size=1),
-        axis.text.y=element_text(size=1), legend.position = "none")
-dev.off()
+# # ggcorrplot
+# library(ggcorrplot)
+# corr <- cor(meth_all)
+# pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/corr_structure_MWAS/ggcorrplot_ALL_cpgs.pdf", width = 25, height = 25)
+# ggcorrplot(corr, type = "upper",
+#      outline.col = "white", hc.order = TRUE) +
+#   theme(axis.text.x=element_text(size=1),
+#         axis.text.y=element_text(size=1), legend.position = "none")
+# dev.off()

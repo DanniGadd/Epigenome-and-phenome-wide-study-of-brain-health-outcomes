@@ -145,7 +145,7 @@ query = merge(out2, cpgs[,c("Gene_of_Somamer", "Marker.x")], by.x = "cpg", by.y 
 ## Read in eQTL Gen data 
 eqtls = readRDS("/Cluster_Filespace/Marioni_Group/Rob/Neurology Proteins/eqtls/eQTLgen_data.rds")
 
-# ## Convert summ stats to Beta and SE - would  need for coloc (possibly later, not needed here for look-up)
+# ## Convert summ stats to Beta and SE - would  need for coloc
 # eqtls$BETA <- eqtls$Zscore/sqrt((2*eqtls$MAF)*(1-eqtls$MAF)*(eqtls$NrSamples + eqtls$Zscore^2))
 # eqtls$SE <- 1/sqrt((2*eqtls$MAF)*(1-eqtls$MAF)*(eqtls$NrSamples + eqtls$Zscore^2))
 
