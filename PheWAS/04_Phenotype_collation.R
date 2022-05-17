@@ -48,63 +48,6 @@ for(i in colnames(prot)[33:4267]){
   prot[,i]<- orderNorm(prot[,i])$x.t
 }
 
-### SENSITIVITY CHECK FOR STUDY SITE AND LAG GROUP VARIABLES ON PROTEIN LEVELS:
-
-# # Get lag group and study site variables 
-# ewas <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/soma_demo1_file_for_rosie.csv")
-# var <- ewas[c("st","study_site", "lag_group")]
-# names(var)[1] <- "SampleId"
-
-# # Add them into the main protein file 
-# prot <- left_join(prot, var, by = "SampleId")
-
-# # > dim(target)
-# # [1] 847   6
-
-# # Check for missing protein data 
-# # proteins <- prot[c(13,33:4267)]
-
-# ## TRANSFORM PROTEIN DATA AND JOIN FOR REGRESSIONS
-
-# ## Log Transform 
-# for(i in colnames(prot)[33:4267]){ 
-#   prot[,i]<- log(prot[,i])
-# }
-
-# ## Regress Proteins onto Covariates 
-# for(i in colnames(prot)[33:4267]){ 
-#   prot[,i]<- lm(prot[,i] ~ factor(study_site) + factor(lag_group), 
-#                                     na.action = na.exclude, data = prot)$residuals
-# }
-
-# ## Rank-Inverse Based Normaliation
-# library(bestNormalize)
-# for(i in colnames(prot)[33:4267]){ 
-#   prot[,i]<- orderNorm(prot[,i])$x.t
-# }
-
-# prot_OG <- prot 
-# prot_resid <- prot 
-
-# table <- data.frame(SeqId = 1:4235, Corr = 1:4235)
-
-# names <- as.character(colnames(prot)[33:4267])
-
-# for (i in 1:length(names)){
-#   marker <- names[i]
-#   result <- cor.test(prot_OG[,marker], prot_resid[,marker])
-#   estimate <- result$estimate
-#   table[i,1] <- marker
-#   table[i,2] <- estimate 
-# }
-
-# table <- table[order(table$Corr),]
-# write.csv(table, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/PheWAS_run2/table_correlations.csv", row.names = F)
-
-## WMost proteins have a correlation of 95% or above, however a few are 0.87 and above
-# For this reason, we will add study site and lag group into cognitive and apoe models as covariates 
-# We will also add lag group into imaging models (as study_site*ICV is already adjusted for)
-
 ################################################################################################################################
 
 ### ADD PHENOTYPES
@@ -167,12 +110,6 @@ BMI <- demo_table[c(14,54)]
 prot = left_join(prot, BMI, by = "GS_id")
 library(imputeTS)
 prot$BMI = na_mean(prot$BMI) 
-
-# # Join in the GS id information into the protein dataset for models
-# ids <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_inputs/ST id linkage.csv")
-# names(ids)[1] <- "SampleId"
-# ids <- ids[c(1,2)]
-# prot <- left_join(prot, ids, by = "SampleId")
 
 
 ### ADD IN IMAGING DATA 

@@ -957,59 +957,6 @@ dim(comb2_filt2) # 2080  - at cpg/protein adjusted significance
 comb2 <- comb2_filt2[order(comb2_filt2$p),]
 write.csv(comb2, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/FULL_EWAS_results_020221.csv", row.names = F)
 
-
-# # Contrast difference 
-# second <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/FULL_EWAS_results_second_threshold_020221.csv")
-# second$assoc <- paste0(second$Probe, "_", second[,11])
-
-# first <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/FULL_EWAS_results_020221.csv")
-# first$assoc <- paste0(first$Probe, "_", first[,11])
-
-# subset <- second[which(!second$assoc %in% first$assoc),]
-
-# unique(subset[,11])
-
-###################################
-
-# ### WORK OUT WHICH FULL PROTEINS DIDNT CONVERGE 
-
-# # Read in protein file which has GS id and stradl id, then all 4,235 proteins that have been preprocessed
-# pheno1 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/proteins_4235_778_eGFR_included.csv", check.names = F)
-# pheno2 <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/prep/Phenotype_file_778_eGFR_removed.csv", check.names = F)
-# names(pheno2)[1] <- "ID"
-# pheno2 <- pheno2[-2]
-# colnames(pheno2) <- colnames(pheno1)
-
-
-# path <- "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/04_FULL/batches/sig_hits/"
-
-# setwd(path)
-
-# L <- list.files(".", ".csv")
-# L
-
-# files <- lapply(L, read.csv)
-# names <- as.character(L)
-# batch <- gsub("_.*", "", names)
-# marker <- gsub("_results.*", "", names)
-# marker <- gsub(".*_", "", marker)
-# names(files) <- marker
-# osca <- do.call(rbind, files)
-# osca <- osca[c(9,1:8)]
-
-# # load pheno2 above and do this to work out difference 
-# list <- names(files)
-# list2 <- pheno2[-which(colnames(pheno2) %in% list)]
-
-# # Plots - of proteins look okay 
-# proteins <- colnames(list2)[1:8]
-# proteins
-
-# # NON CONVERGANCE FULL:
-# # "15509-2" "15584-9" "4407-10" "6402-8"
-# # NAGLU, CFHR2, MST1, PILRA
-
-
 ########################################################################################################
 
 ### Subset to nested model structure across models and format tables for suppl reporting 
@@ -1039,7 +986,6 @@ write.csv(base, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisi
 # > dim(base)
 # [1] 238245     12
 
-
 # Load WBC SNP corrected model 
 WBC <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/WBC_EWAS_results_second_threshold_020221.csv")
 WBC <- WBC[c(3,2,5,4,6:9,1,10,11,12)]
@@ -1047,7 +993,6 @@ names(WBC) <- c("CpG", "Chromsome of CpG", "Gene of CpG", "CpG position", "Orien
   "Beta", "SE", "P", "SeqId", "UniProt", "Gene of protein", "UniProt Full Name")
 WBC <- WBC[order(WBC$P),]
 write.csv(WBC, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/Formatted_tables/WBC_EWAS_results_020221_formatted_second_threshold.csv", row.names = F)
-
 
 # > dim(WBC)
 # [1] 3213   12
@@ -1061,10 +1006,8 @@ names(full) <-  c("CpG", "Chromsome of CpG", "Gene of CpG", "CpG position", "Ori
 full <- full[order(full$P),]
 write.csv(full, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/Formatted_tables/FULL_EWAS_results_020221_formatted_second_threshold.csv", row.names = F)
 
-
 # > dim(full)
 # [1] 2928   12
-
 
 # NEXT LOOK AT WHICH ARE CONSISTENT ACROSS MODELS 
 
@@ -1076,10 +1019,6 @@ WBC$retain <- paste(WBC$SeqId, WBC$Probe, sep = "_")
 WBC <- WBC[which(WBC$retain %in% keep),] # 2718 
 WBC$retain <- NULL
 write.csv(WBC, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/Formatted_tables/retained_basic_to_middle_2718_of_3213_unformatted_second_threshold.csv", row.names = F)
-# WBC <- WBC[c(3,2,5,4,6:9,1,10,11,12)]
-# names(WBC) <- c("CpG", "Chromsome of CpG", "Gene of CpG", "CpG position", "Orientation",
-#   "Beta", "SE", "P", "SeqId", "Gene of protein", "UniProt", "UniProt Full Name") # 2484/2908 remain significant with WBC and pQTLs adjusted for from basic model 
-# write.csv(WBC, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/EWAS_240521_results/formatted_tables/no_eGFR_retained_basic_to_middle_2564_of_2974.csv", row.names = F)
 
 # From middle model (filtered) to the final full model 
 WBC <- read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/MWAS/00_Results_collation/WBC_EWAS_results_second_threshold_020221.csv")
@@ -1106,16 +1045,6 @@ unique(diff$gene)
 
 diff <- pqtl[which(pqtl$retain %in% filt$retain),] # 2847
 
-# # Lets look at the 440 to see if they are mostly PAPPA or other proteins 
-# new <- pqtl[-which(pqtl$retain %in% filt$retain),]
-# write.csv(new, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/EWAS_240521_results/formatted_tables/the_440_lost_from_final_model.csv", row.names = F)
-# # most are either PAPPA or PRG3 - lets remove them and see how many were other protein signals 
-# new <- new[-which(new$Gene.Name.Name %in% "PAPPA"),]
-# new <- new[-which(new$Gene.Name.Name %in% "PRG3"),] 
-# dim(new) # 80 - there are 80/440 that are non-PAPPA and non-PRG3 pQTMs 
-# dim(unique(new[10])) # - 56 unique proteins in the group of 80
-# write.csv(new, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/EWAS_4000/EWAS_240521_results/formatted_tables/the_80_of_440_lost_from_final_model_that_arent_PAPPA_or_PRG3.csv", row.names = F)
-
 
 # How many proteins were involved in significant full model results
 
@@ -1126,25 +1055,9 @@ length(unique(full[,9])) # 195 unique somamers
 # Subset so that we can identify which had multiple somamers
 sub <- full[c(11,9)]
 sub$match <- paste0(sub[,1], "_", sub[,2])
-
 unique(sub$match) # 146
-
 sub <- unique(sub)
-
 sub <- sub[order(sub[,1]), ]
-
-# CLEC11A   4500-50   CLEC11A_4500-50
-# CLEC11A   2966-65   CLEC11A_2966-65
-
-# GOLM1    8983-7      GOLM1_8983-7
-# GOLM1  17456-53    GOLM1_17456-53
-
-# LRP11    6713-4      LRP11_6713-4
-# LRP11  15472-16    LRP11_15472-16
-
-# 194            ICAM5   5124-69      ICAM5_5124-69
-# 2661           ICAM5   8245-27      ICAM5_8245-27
-
 
 ##############################################################################
 

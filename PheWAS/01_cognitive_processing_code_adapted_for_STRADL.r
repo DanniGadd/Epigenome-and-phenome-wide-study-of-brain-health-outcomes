@@ -7,29 +7,20 @@ cog = read.csv("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/Data_for_i
 
 # Check against max scores from literature
 
-# digit symbol - max 100? - we have ~20 people over 100, up to 116
 dig <- cog[order(cog$digit_symbol),]
 dig$digit_symbol
 
-# mill hill vocabulary - max 33 - but we have 309 people higher up to 44 
 voc <- cog[order(cog$vocabulary),]
 voc$vocabulary
 
-# logical mem - max 25 - looks fine as two logical mem scores sum together to < 50 
 mem <- cog[order(cog$logical_mem_1),]
 mem$logical_mem_1
 
 mem <- cog[order(cog$logical_mem_2),]
 mem$logical_mem_2
 
-# Verbal reasoning - max 
 ver <- cog[order(cog$verbal_total),]
 ver$verbal_total
-
-
-# matrix reasoning - max 30
-
-
 
 cog$LM <- cog$logical_mem_1 + cog$logical_mem_2
 

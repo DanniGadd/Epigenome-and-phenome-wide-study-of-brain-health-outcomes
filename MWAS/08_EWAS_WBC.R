@@ -989,10 +989,6 @@ list2 <- pheno2[-which(colnames(pheno2) %in% list)]
 proteins <- colnames(list2)[1:8]
 proteins
 
-# NON CONVERGANCE WBC:
-# "15509-2" "15584-9" "4407-10" "6402-8"
-# NAGLU, CFHR2, MST1, PILRA
-
 
 
 
