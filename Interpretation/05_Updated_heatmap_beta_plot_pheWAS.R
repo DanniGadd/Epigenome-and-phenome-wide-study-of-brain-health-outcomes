@@ -405,6 +405,10 @@ names(bind)[2] <- "gene"
 length(unique(bind$SeqId)) # 26 somamers 
 length(unique(bind$gene)) # 25 proteins (22 cog/imaging and 3 APOE/cog) 
 
+# Write source data
+write.csv(bind, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig4b_source_heatmap.csv", row.names = F)
+
+
 # Plot 
 library(ggplot2)
 
@@ -436,6 +440,7 @@ library(readxl)
 library(ggplot2)
 library(ggthemes)
 library(readxl)
+library(tidyverse)
 
 table <- read_excel("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/heatmap_phewas/phewas_table_counts.xlsx")
 table <- as.data.frame(table)
@@ -462,7 +467,7 @@ names(table) <- c("Phenotype", "Marker", "Count")
 
 
 table$Phenotype <- c("Relative Brain Age", "General Fractional Anisotropy", "White Matter Hyperintensity Volume", 
-  "Global Gey Matter Volume", "Whole Brain Volume", "General Mean Diffusivity", "Fazekas White Matter Hyperintensity Score", "APOE haplotype", 
+  "Global Grey Matter Volume", "Whole Brain Volume", "General Mean Diffusivity", "Fazekas White Matter Hyperintensity Score", "APOE status", 
   "Processing Speed", "General Cognitive Ability", "General Fluid Cognitive Ability", "Non-Verbal Reasoning", "Vocabulary", "Verbal Reasoning",
   "Logical Memory")
 
@@ -491,8 +496,11 @@ plot_data <- table %>%
 #        y = "") 
 # dev.off()
 
+# Write source data
+write.csv(plot_data, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig4a_source_barplot.csv", row.names = F)
 
-pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/heatmap_phewas/plot_bar.pdf", width = 14.5, height = 6)
+
+pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/heatmap_phewas/plot_bar_V2.pdf", width = 14.5, height = 6)
 ggplot(plot_data, aes(order, Count, fill = Marker)) +
   geom_col() +
   scale_x_continuous(breaks = plot_data$order, labels = plot_data$Phenotype) +
@@ -503,7 +511,7 @@ values = c("cadetblue1", "lightseagreen", "royalblue3")) + theme_minimal() +
 theme(panel.grid.major.y = element_blank()) + theme(legend.title = element_blank()) + theme(legend.position = 'None') +
   labs(y = "Number of associations with protein levels",
        x = "") +
-  theme(axis.text.x = element_text(size=14),
-          axis.text.y = element_text(size=16, angle=0), axis.title = element_text(size=14)) 
+  theme(axis.text.x = element_text(size=16),
+          axis.text.y = element_text(size=16, angle=0), axis.title = element_text(size=16)) 
 dev.off()
 

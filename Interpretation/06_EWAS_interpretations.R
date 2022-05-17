@@ -204,7 +204,20 @@ names(prot) <- c("CHR", "BP", "P", "SNP", "Data")
 cpg$CHR <- as.numeric(cpg$CHR)
 
 # Rename X to chr 23 and convert to numeric 
-prot <- prot[-which(prot$CHR %in% "X"),]
+ex <- prot[which(prot$CHR %in% "X"),] # work out how many X proteins excluded 
+
+# > dim(ex)
+# [1] 11  5
+# > table(ex$SNP)
+
+# CSAG1    F8
+#     8     3
+
+# we will present the associations for chr 1-22 as there are no CpGs on X chromosomes - only two proteins given here
+
+prot <- prot[-which(prot$CHR %in% "X"),] 
+# library(stringr)
+# prot$CHR = str_replace(prot$CHR,"X","23")
 prot$CHR <- as.numeric(prot$CHR)
 
 
@@ -288,35 +301,37 @@ ggmiami(miami_dat, split_by = "Data", split_at = "EWAS_v2", suggestive_line = NU
   upper_highlight_color = studyA_labels$color, lower_highlight_color = studyB_labels$color)
 dev.off()
 
+# Write source data
+write.csv(miami_dat, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig3a_source_circos.csv", row.names = F)
 
 
-# Get the position of the two peaks +- 100 bp.
-studyA_highlight_pos <- plot_data$upper %>%
-  filter(P < 5e-8) %>%
-  group_by(chr) %>%
-  filter(P == min(P)) %>%
-  summarise(start = rel_pos - 100, end = rel_pos + 100) %>%
-  select(-chr) %>%
-  apply(., 1, function(x) x["start"]:x["end"]) %>%
-  as.vector()
+# # Get the position of the two peaks +- 100 bp.
+# studyA_highlight_pos <- plot_data$upper %>%
+#   filter(P < 5e-8) %>%
+#   group_by(chr) %>%
+#   filter(P == min(P)) %>%
+#   summarise(start = rel_pos - 100, end = rel_pos + 100) %>%
+#   select(-chr) %>%
+#   apply(., 1, function(x) x["start"]:x["end"]) %>%
+#   as.vector()
 
 
-# Find which rsids match these SNPs
-studyA_highlight_rsid <- plot_data$upper %>%
-  mutate(in_peak = case_when(rel_pos %in% studyA_highlight_pos ~ "Yes", 
-                             TRUE ~ "No")) %>%
-  filter(in_peak == "Yes") %>%
-  select(rsid)
+# # Find which rsids match these SNPs
+# studyA_highlight_rsid <- plot_data$upper %>%
+#   mutate(in_peak = case_when(rel_pos %in% studyA_highlight_pos ~ "Yes", 
+#                              TRUE ~ "No")) %>%
+#   filter(in_peak == "Yes") %>%
+#   select(rsid)
 
-# ,"cg00676801","cg00959259","cg01958934","cg06688803","cg06716655","cg07815522",
-# "cg08701064","cg09555818","cg09858955","cg10872931","cg11879188", "cg12415337","cg13119609","cg22294278","cg22930808"
+# # ,"cg00676801","cg00959259","cg01958934","cg06688803","cg06716655","cg07815522",
+# # "cg08701064","cg09555818","cg09858955","cg10872931","cg11879188", "cg12415337","cg13119609","cg22294278","cg22930808"
 
 
-# # Rename X to chr 23 and convert to numeric 
-# library(dplyr)
-# prot <- prot %>% 
-#   mutate(CHR = as.character(CHR)) %>% 
-#   mutate(CHR = replace(CHR, CHR == 'X', '23'))
-# prot$CHR <- as.numeric(prot$CHR)
+# # # Rename X to chr 23 and convert to numeric 
+# # library(dplyr)
+# # prot <- prot %>% 
+# #   mutate(CHR = as.character(CHR)) %>% 
+# #   mutate(CHR = replace(CHR, CHR == 'X', '23'))
+# # prot$CHR <- as.numeric(prot$CHR)
 
 

@@ -149,6 +149,9 @@ library(circlize)
 # circos.genomicLink(bed1,bed2, col = rand_color(nrow(bed1)), border= NA)
 # dev.off()
 
+# Write source data
+write.csv(bed, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig5_source_circos.csv", row.names = F)
+
 pdf("/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Interpretation/circos/circ4_V3.pdf", width = 12, height = 12)
 ## initalize plot 
 circos.initializeWithIdeogram()

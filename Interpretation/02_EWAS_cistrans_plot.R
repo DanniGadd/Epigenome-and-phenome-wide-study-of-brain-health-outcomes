@@ -71,6 +71,10 @@ gen$Relative_Gene_Position <- gen$Position_of_Somamer/gen$Max_Chromosome_Biomark
 gen$Relative_Hit_Position <- gen$Relative_Hit_Position + gen$Chromosome_of_Hit
 gen$Relative_Gene_Position <- gen$Relative_Gene_Position + gen$Chromosome_of_Somamer
 
+# Write source data
+write.csv(gen, "/Cluster_Filespace/Marioni_Group/Danni/Stradl_markers/00_Revisions_updates/Source_data/Fig2c_source_cistrans.csv", row.names = F)
+
+
 # Plot relative positions of hits 
 
 library(ggplot2)
